@@ -1,0 +1,520 @@
+import React, { useState } from 'react';
+import { Event, Participation, Player } from '../types';
+import { getParticipations, saveParticipations } from '../utils/storage';
+import { getPlayerDisplayName } from '../utils/playerName';
+import { CheckCircle, XCircle } from 'lucide-react';
+import { showSuccess, showError, handleAsyncError } from '../utils/errorHandler';
+
+interface ParticipationFormProps {
+  event: Event;
+  players: Player[];
+  onSave: () => void;
+}
+
+const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, onSave }) => {
+  const [participations, setParticipations] = useState<Participation[]>(getParticipations());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [comment, setComment] = useState('');
+
+  const eventParticipations = participations.filter(p => p.eventId === event.id);
+
+  const getParticipationForPlayer = (playerId: string): Participation | undefined => {
+    return eventParticipations.find(p => p.playerId === playerId);
+  };
+
+  const updateParticipation = (playerId: string, updates: Partial<Participation>) => {
+    const existingParticipation = getParticipationForPlayer(playerId);
+
+    if (existingParticipation) {
+      const updatedParticipations = participations.map(p =>
+        p.playerId === playerId && p.eventId === event.id
+          ? { ...p, ...updates }
+          : p
+      );
+      setParticipations(updatedParticipations);
+    } else {
+      const newParticipation: Participation = {
+        eventId: event.id,
+        playerId,
+        status: 'undecided',
+        parentParticipation: 'undecided',
+        carCapacity: 0,
+        equipmentCar: false,
+        umpire: false,
+        ...updates
+      };
+      setParticipations([...participations, newParticipation]);
+    }
+  };
+
+  const getFamilyCooperation = () => {
+    const firstPlayerParticipation = eventParticipations.find(p =>
+      players.some(player => player.id === p.playerId)
+    );
+    return firstPlayerParticipation || {
+      parentParticipation: 'undecided',
+      carCapacity: 0,
+      equipmentCar: false,
+      umpire: false,
+      transport: undefined
+    };
+  };
+
+  const updateFamilyCooperation = (updates: Partial<Participation>) => {
+    players.forEach(player => {
+      updateParticipation(player.id, updates);
+    });
+  };
+
+  const handleSave = async () => {
+    setIsSubmitting(true);
+
+    const result = await handleAsyncError(async () => {
+      if (players.length > 0) {
+        updateParticipation(players[0].id, { comment });
+      }
+
+      saveParticipations(participations);
+      onSave();
+
+      return true;
+    }, '参加状況の保存に失敗しました');
+
+    if (result) {
+      showSuccess('参加状況を保存しました');
+    }
+
+    setIsSubmitting(false);
+  };
+
+  // 練習イベントかどうかを判定
+  const isPracticeEvent = event.type === 'practice';
+
+  return (
+    <div className="space-y-6">
+      {isPracticeEvent ? (
+        // 練習イベント用のシンプルなフォーム
+        <PracticeForm event={event} players={players} onSave={onSave} />
+      ) : (
+        // 通常のイベント用の詳細フォーム
+        <>
+          {/* 選手の参加状況 */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h4 className="font-medium text-gray-900">選手の参加状況</h4>
+            </div>
+
+            <div className="p-4 space-y-3">
+              {players.map((player, index) => {
+                const participation = getParticipationForPlayer(player.id);
+                const playerStatus = participation?.status || 'undecided';
+
+                return (
+                  <div key={player.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-7 h-7 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-medium text-blue-600">{index + 1}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-900">{getPlayerDisplayName(player)}</span>
+                        <span className="text-sm text-gray-500 ml-2">{player.grade}年生</span>
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-2">
+                      {[
+                        {
+                          value: 'attending',
+                          label: '参加',
+                          color: 'bg-green-500 text-white hover:bg-green-600',
+                          icon: CheckCircle,
+                          selectedColor: 'bg-green-500 text-white'
+                        },
+                        {
+                          value: 'not_attending',
+                          label: '不参加',
+                          color: 'bg-red-500 text-white hover:bg-red-600',
+                          icon: XCircle,
+                          selectedColor: 'bg-red-500 text-white'
+                        }
+                      ].map((option) => {
+                        const Icon = option.icon;
+                        const isSelected = playerStatus === option.value;
+
+                        return (
+                          <button
+                            key={option.value}
+                            onClick={() => updateParticipation(player.id, { status: option.value as any })}
+                            className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-1 ${
+                              isSelected
+                                ? option.selectedColor
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            <Icon className="w-4 h-4" />
+                            <span>{option.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 保護者の参加 */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h4 className="font-medium text-gray-900">保護者の参加人数</h4>
+            </div>
+
+            <div className="p-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[1, 2, 3, 4].map((count) => (
+                  <button
+                    key={count}
+                    onClick={() => updateFamilyCooperation({ parentParticipation: count.toString() as any })}
+                    className={`p-3 rounded-lg text-center transition-all duration-200 ${
+                      getFamilyCooperation().parentParticipation === count.toString()
+                        ? 'bg-blue-500 text-white shadow-md'
+                        : 'bg-gray-50 text-gray-700 hover:bg-blue-50 hover:text-blue-700'
+                    }`}
+                  >
+                    <div className="text-xl font-bold">{count}</div>
+                    <div className="text-xs">名</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 送迎 */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h4 className="font-medium text-gray-900">送迎</h4>
+            </div>
+
+            <div className="p-4 space-y-3">
+              <div className="flex space-x-3">
+                {[
+                  { value: 'can_transport', label: '送迎できる', color: 'bg-green-500 text-white hover:bg-green-600' },
+                  { value: 'cannot_transport', label: '送迎できない', color: 'bg-red-500 text-white hover:bg-red-600' }
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => updateFamilyCooperation({ transport: option.value as any })}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      getFamilyCooperation().transport === option.value
+                        ? option.color
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
+              {getFamilyCooperation().transport === 'can_transport' && (
+                <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    乗合い可能人数（あと何人乗れるか）
+                  </label>
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                    {[1, 2, 3, 4, 5, 6].map((count) => (
+                      <button
+                        key={count}
+                        onClick={() => updateFamilyCooperation({ carCapacity: count })}
+                        className={`p-2 rounded-lg text-center transition-all duration-200 ${
+                          getFamilyCooperation().carCapacity === count
+                            ? 'bg-green-500 text-white shadow-md'
+                            : 'bg-white text-gray-700 hover:bg-green-100 hover:text-green-700 border border-gray-200'
+                        }`}
+                      >
+                        <div className="text-base font-bold">{count}</div>
+                        <div className="text-xs">人</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 道具車・審判 */}
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* 道具車 */}
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 className="font-medium text-gray-900">道具車</h4>
+              </div>
+
+              <div className="p-4">
+                <div className="space-y-3">
+                  {[
+                    { value: true, label: '道具車を運搬できる', color: 'bg-purple-500 text-white hover:bg-purple-600' },
+                    { value: false, label: '道具車を運搬できない', color: 'bg-gray-500 text-white hover:bg-gray-600' }
+                  ].map((option) => (
+                    <button
+                      key={option.value.toString()}
+                      onClick={() => updateFamilyCooperation({ equipmentCar: option.value })}
+                      className={`w-full px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                        getFamilyCooperation().equipmentCar === option.value
+                          ? option.color
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 審判 */}
+            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h4 className="font-medium text-gray-900">審判</h4>
+              </div>
+
+              <div className="p-4">
+                <div className="space-y-3">
+                  {[
+                    { value: true, label: '審判を担当できる', color: 'bg-yellow-500 text-white hover:bg-yellow-600' },
+                    { value: false, label: '審判を担当できない', color: 'bg-gray-500 text-white hover:bg-gray-600' }
+                  ].map((option) => (
+                    <button
+                      key={option.value.toString()}
+                      onClick={() => updateFamilyCooperation({ umpire: option.value })}
+                      className={`w-full px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                        getFamilyCooperation().umpire === option.value
+                          ? option.color
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* コメント */}
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+              <h4 className="font-medium text-gray-900">コメント</h4>
+            </div>
+
+            <div className="p-4">
+              <textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="例：遅刻の可能性があります、体調不良のため不参加、など"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          {/* 保存ボタン */}
+          <div className="sticky bottom-4 bg-white border-t border-gray-200 pt-6 mt-8 pb-4">
+            <div className="flex justify-center">
+              <button
+                onClick={handleSave}
+                disabled={isSubmitting}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center space-x-2 min-w-[140px] justify-center"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>保存中...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-5 h-5" />
+                    <span>保存</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+// 練習用のシンプルなフォームコンポーネント
+interface PracticeFormProps {
+  event: Event;
+  players: Player[];
+  onSave: () => void;
+}
+
+const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) => {
+  const [participations, setParticipations] = useState<Participation[]>(getParticipations());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [comment, setComment] = useState('');
+
+  const eventParticipations = participations.filter(p => p.eventId === event.id);
+
+  const getParticipationForPlayer = (playerId: string): Participation | undefined => {
+    return eventParticipations.find(p => p.playerId === playerId);
+  };
+
+  const updateParticipation = (playerId: string, updates: Partial<Participation>) => {
+    const existingParticipation = getParticipationForPlayer(playerId);
+    
+    if (existingParticipation) {
+      const updatedParticipations = participations.map(p => 
+        p.playerId === playerId && p.eventId === event.id
+          ? { ...p, ...updates }
+          : p
+      );
+      setParticipations(updatedParticipations);
+    } else {
+      const newParticipation: Participation = {
+        eventId: event.id,
+        playerId,
+        status: 'attending', // 練習は基本的に参加前提
+        parentParticipation: 'attending',
+        carCapacity: 0,
+        equipmentCar: false,
+        umpire: false,
+        ...updates
+      };
+      setParticipations([...participations, newParticipation]);
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSubmitting(true);
+    
+    const result = await handleAsyncError(async () => {
+      // コメントを最初の選手の参加状況に保存
+      if (players.length > 0) {
+        updateParticipation(players[0].id, { comment });
+      }
+      
+      saveParticipations(participations);
+      onSave();
+      return true;
+    }, '参加状況の保存に失敗しました');
+
+    if (result) {
+      showSuccess('参加状況を保存しました');
+    }
+    
+    setIsSubmitting(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* ヘッダー */}
+      <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          平日練習 - 不参加連絡
+        </h3>
+        <p className="text-sm text-gray-600">
+          平日練習は基本的に参加前提です。不参加の場合は下記で連絡してください。
+        </p>
+      </div>
+
+      {/* 選手の不参加連絡 */}
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+          <h4 className="font-medium text-gray-900">不参加連絡</h4>
+        </div>
+        
+        <div className="p-4 space-y-3">
+          {players.map((player, index) => {
+            const participation = getParticipationForPlayer(player.id);
+            const playerStatus = participation?.status || 'attending';
+
+            return (
+              <div key={player.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-blue-600">{index + 1}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-gray-900">{getPlayerDisplayName(player)}</span>
+                    <span className="text-sm text-gray-500 ml-2">{player.grade}年生</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  {playerStatus === 'attending' ? (
+                    <span className="text-sm text-green-600 font-medium">参加予定</span>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-red-600 font-medium">不参加</span>
+                      <button
+                        onClick={() => updateParticipation(player.id, { status: 'attending' })}
+                        className="text-xs text-blue-600 hover:text-blue-700 underline"
+                      >
+                        取り消し
+                      </button>
+                    </div>
+                  )}
+                  
+                  {playerStatus === 'attending' && (
+                    <button
+                      onClick={() => updateParticipation(player.id, { status: 'not_attending' })}
+                      className="px-3 py-1 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors"
+                    >
+                      不参加連絡
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* コメント */}
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+          <h4 className="font-medium text-gray-900">不参加理由・連絡事項</h4>
+        </div>
+        
+        <div className="p-4">
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="不参加の理由や連絡事項があればお書きください（例：体調不良、用事があるため、など）"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            rows={3}
+          />
+        </div>
+      </div>
+
+      {/* 保存ボタン */}
+      <div className="sticky bottom-4 bg-white border-t border-gray-200 pt-6 mt-8 pb-4">
+        <div className="flex justify-center">
+          <button
+            onClick={handleSave}
+            disabled={isSubmitting}
+            className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center space-x-2 min-w-[140px] justify-center"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>保存中...</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-5 h-5" />
+                <span>保存</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ParticipationForm;

@@ -1,0 +1,343 @@
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { User, Player } from '../types';
+import { getUsers, saveUsers } from '../utils/storage';
+import { User as UserIcon, Plus, Edit, Trash2 } from 'lucide-react';
+
+const MyPage: React.FC = () => {
+  const { authState } = useAuth();
+  const [users, setUsers] = useState<User[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+
+  const user = authState.user;
+  if (!user || !('players' in user)) {
+    return <div>ユーザー情報が正しくありません</div>;
+  }
+
+  useEffect(() => {
+    const loadedUsers = getUsers();
+    setUsers(loadedUsers);
+  }, []);
+
+  // usersが読み込まれるまで待つ
+  if (users.length === 0) {
+    return <div>ユーザー情報の読み込み中...</div>;
+  }
+
+  const currentUser = users.find(u => u.id === user.id) || user;
+
+  if (!currentUser) {
+    return <div>ユーザー情報が見つかりません</div>;
+  }
+
+  const handleSaveUser = () => {
+    const updatedUsers = users.map(u => 
+      u.id === currentUser.id ? currentUser : u
+    );
+    setUsers(updatedUsers);
+    saveUsers(updatedUsers);
+    setIsEditing(false);
+  };
+
+  const handleAddPlayer = (newPlayer: Omit<Player, 'id'>) => {
+    const player: Player = {
+      ...newPlayer,
+      id: `${currentUser.id}-${Date.now()}`
+    };
+    const updatedUser = {
+      ...currentUser,
+      players: [...currentUser.players, player]
+    };
+    const updatedUsers = users.map(u => 
+      u.id === currentUser.id ? updatedUser : u
+    );
+    setUsers(updatedUsers);
+    saveUsers(updatedUsers);
+    setShowAddPlayer(false);
+  };
+
+  const handleEditPlayer = (playerId: string, updates: Partial<Player>) => {
+    const updatedUser = {
+      ...currentUser,
+      players: currentUser.players.map(p => 
+        p.id === playerId ? { ...p, ...updates } : p
+      )
+    };
+    const updatedUsers = users.map(u => 
+      u.id === currentUser.id ? updatedUser : u
+    );
+    setUsers(updatedUsers);
+    saveUsers(updatedUsers);
+    setEditingPlayer(null);
+  };
+
+  const handleDeletePlayer = (playerId: string) => {
+    if (confirm('この選手を削除しますか？')) {
+      const updatedUser = {
+        ...currentUser,
+        players: currentUser.players.filter(p => p.id !== playerId)
+      };
+      const updatedUsers = users.map(u => 
+        u.id === currentUser.id ? updatedUser : u
+      );
+      setUsers(updatedUsers);
+      saveUsers(updatedUsers);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* ユーザー情報 */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <UserIcon className="w-6 h-6 text-primary-600" />
+            <h3 className="text-lg font-semibold text-gray-900">保護者情報</h3>
+          </div>
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="btn-secondary"
+          >
+            {isEditing ? 'キャンセル' : '編集'}
+          </button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              お名前
+            </label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={currentUser.name}
+                onChange={(e) => {
+                  const updatedUser = { ...currentUser, name: e.target.value };
+                  const updatedUsers = users.map(u => 
+                    u.id === currentUser.id ? updatedUser : u
+                  );
+                  setUsers(updatedUsers);
+                }}
+                className="input-field"
+              />
+            ) : (
+              <p className="text-gray-900">{currentUser.name}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              PINコード
+            </label>
+            <p className="text-gray-900 font-mono">{currentUser.pin}</p>
+          </div>
+        </div>
+
+        {isEditing && (
+          <div className="mt-6 flex justify-end space-x-3">
+            <button
+              onClick={() => setIsEditing(false)}
+              className="btn-secondary"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleSaveUser}
+              className="btn-primary"
+            >
+              保存
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* 選手一覧 */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <UserIcon className="w-6 h-6 text-primary-600" />
+            <h3 className="text-lg font-semibold text-gray-900">登録選手</h3>
+          </div>
+          <button
+            onClick={() => setShowAddPlayer(true)}
+            className="btn-primary flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>選手追加</span>
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {currentUser.players.map((player) => (
+            <div key={player.id} className="border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-gray-900">{player.name}</h4>
+                  {player.hiraganaName && (
+                    <p className="text-sm text-blue-600 font-medium">
+                      {player.hiraganaName}
+                    </p>
+                  )}
+                  <p className="text-sm text-gray-600">
+                    {player.grade}年生 {player.position && `・${player.position}`}
+                  </p>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => setEditingPlayer(player)}
+                    className="text-primary-600 hover:text-primary-700"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeletePlayer(player.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {currentUser.players.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <UserIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+              <p>登録された選手がいません</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+
+      {/* 選手追加モーダル */}
+      {showAddPlayer && (
+        <PlayerForm
+          onSubmit={handleAddPlayer}
+          onCancel={() => setShowAddPlayer(false)}
+        />
+      )}
+
+      {/* 選手編集モーダル */}
+      {editingPlayer && (
+        <PlayerForm
+          player={editingPlayer}
+          onSubmit={(updates) => handleEditPlayer(editingPlayer.id, updates)}
+          onCancel={() => setEditingPlayer(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+// 選手フォームコンポーネント
+interface PlayerFormProps {
+  player?: Player;
+  onSubmit: (player: Omit<Player, 'id'>) => void;
+  onCancel: () => void;
+}
+
+const PlayerForm: React.FC<PlayerFormProps> = ({ player, onSubmit, onCancel }) => {
+  const [formData, setFormData] = useState({
+    name: player?.name || '',
+    hiraganaName: player?.hiraganaName || '',
+    grade: player?.grade || 1,
+    position: player?.position || ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.name.trim()) {
+      onSubmit(formData);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          {player ? '選手編集' : '選手追加'}
+        </h3>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              選手名（漢字）
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className="input-field"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              ひらがな名
+            </label>
+            <input
+              type="text"
+              value={formData.hiraganaName}
+              onChange={(e) => setFormData({ ...formData, hiraganaName: e.target.value })}
+              className="input-field"
+              placeholder="例：いちろう"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              参加状況入力で表示される名前です
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              学年
+            </label>
+            <select
+              value={formData.grade}
+              onChange={(e) => setFormData({ ...formData, grade: parseInt(e.target.value) })}
+              className="input-field"
+            >
+              {[1, 2, 3, 4, 5, 6].map(grade => (
+                <option key={grade} value={grade}>{grade}年生</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              ポジション（任意）
+            </label>
+            <input
+              type="text"
+              value={formData.position}
+              onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+              className="input-field"
+              placeholder="例: ピッチャー、キャッチャー"
+            />
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="btn-secondary"
+            >
+              キャンセル
+            </button>
+            <button
+              type="submit"
+              className="btn-primary"
+            >
+              {player ? '更新' : '追加'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default MyPage;
