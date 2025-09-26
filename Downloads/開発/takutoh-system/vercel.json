@@ -1,6 +1,6 @@
 {
-  "buildCommand": "npm ci && npm run build",
+  "buildCommand": "rm -rf node_modules && npm install && npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "installCommand": "npm ci"
+  "installCommand": "npm install"
 }
