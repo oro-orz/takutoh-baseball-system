@@ -5,7 +5,7 @@ import { eventService } from '../services/eventService';
 import { participationService } from '../services/participationService';
 import { userService } from '../services/userService';
 import { getPlayerDisplayName } from '../utils/playerName';
-import { Users, CheckCircle, XCircle, Clock, Car, Package, Mic, Calendar, MapPin, Eye } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Clock, Car, Package, Mic, BarChart, X } from 'lucide-react';
 
 const ParticipationProgressPage: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
