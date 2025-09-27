@@ -241,9 +241,17 @@ const ParticipationProgressPage: React.FC = () => {
     }
   };
 
-  const sortedEvents = [...events].sort((a, b) => 
-    new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  const sortedEvents = [...events]
+    .filter(event => {
+      // 未来のイベントのみを表示（今日以降）
+      const eventDate = new Date(event.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // 今日の0時0分0秒
+      return eventDate >= today;
+    })
+    .sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
 
   const handleEventClick = (eventId: string) => {
     setSelectedEventId(eventId);
