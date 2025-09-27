@@ -169,9 +169,10 @@ export const handleAsyncError = async <T>(
 ): Promise<T | null> => {
   try {
     return await asyncFn();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Async error:', error);
-    showError(errorMessage);
+    const detailedMessage = error?.message || errorMessage;
+    showError(detailedMessage);
     return null;
   }
 };

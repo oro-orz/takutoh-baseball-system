@@ -78,7 +78,8 @@ export const eventService = {
 
     if (error) {
       console.error('Error creating event:', error)
-      throw error
+      console.error('Error details:', JSON.stringify(error, null, 2))
+      throw new Error(`イベント作成エラー: ${error.message || JSON.stringify(error)}`)
     }
 
     // snake_case を camelCase に変換して返す
