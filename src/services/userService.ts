@@ -15,7 +15,7 @@ export const userService = {
   // ユーザー一覧を取得
   async getUsers(): Promise<User[]> {
     const { data, error } = await supabase
-      .from('users')
+      .from('app_users')
       .select('*')
       .order('created_at', { ascending: false })
 
@@ -30,7 +30,7 @@ export const userService = {
   // PINでユーザーを取得
   async getUserByPin(pin: string): Promise<User | null> {
     const { data, error } = await supabase
-      .from('users')
+      .from('app_users')
       .select('*')
       .eq('pin', pin)
       .single()
@@ -50,7 +50,7 @@ export const userService = {
   // ユーザーを作成
   async createUser(user: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
     const { data, error } = await supabase
-      .from('users')
+      .from('app_users')
       .insert([user])
       .select()
       .single()
@@ -66,7 +66,7 @@ export const userService = {
   // ユーザーを更新
   async updateUser(id: string, user: Partial<User>): Promise<User> {
     const { data, error } = await supabase
-      .from('users')
+      .from('app_users')
       .update(user)
       .eq('id', id)
       .select()
@@ -83,7 +83,7 @@ export const userService = {
   // ユーザーを削除
   async deleteUser(id: string): Promise<void> {
     const { error } = await supabase
-      .from('users')
+      .from('app_users')
       .delete()
       .eq('id', id)
 
