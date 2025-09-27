@@ -5,7 +5,7 @@ import { eventService } from '../services/eventService';
 import { participationService } from '../services/participationService';
 import { userService } from '../services/userService';
 import { getPlayerDisplayName } from '../utils/playerName';
-import { Users, CheckCircle, XCircle, Clock, Car, Package, Mic, BarChart, X } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Clock, Car, Package, Mic, BarChart, X, MessageCircle } from 'lucide-react';
 
 const ParticipationProgressPage: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -369,29 +369,46 @@ const ParticipationProgressPage: React.FC = () => {
               <div>
                 <h3 className="text-md font-semibold text-gray-900 mb-3">参加状況詳細</h3>
                 <div className="space-y-3">
-                  {users.map((user) => (
+                  {users
+                    .map((user) => {
+                      // 各保護者の選手を参加状況でソート
+                      const sortedPlayers = user.players
+                        .map((player) => {
+                          const participation = eventParticipations.find(p => p.playerId === player.id);
+                          const playerStatus = participation?.status || 'undecided';
+                          const parentStatus = participation?.parentParticipation || 'undecided';
+                          return { player, participation, playerStatus, parentStatus };
+                        })
+                        .sort((a, b) => {
+                          // 参加状況でソート: 参加 → 不参加 → 未入力
+                          const statusOrder = { 'attending': 0, 'not_attending': 1, 'undecided': 2 };
+                          const aOrder = statusOrder[a.playerStatus as keyof typeof statusOrder];
+                          const bOrder = statusOrder[b.playerStatus as keyof typeof statusOrder];
+                          return aOrder - bOrder;
+                        });
+                      
+                      return { user, sortedPlayers };
+                    })
+                    .sort((a, b) => {
+                      // 保護者も参加状況でソート（最も参加している選手の状況で判定）
+                      const getBestStatus = (players: any[]) => {
+                        const statusOrder = { 'attending': 0, 'not_attending': 1, 'undecided': 2 };
+                        return Math.min(...players.map(p => statusOrder[p.playerStatus as keyof typeof statusOrder]));
+                      };
+                      return getBestStatus(a.sortedPlayers) - getBestStatus(b.sortedPlayers);
+                    })
+                    .map(({ user, sortedPlayers }) => (
                     <div key={user.id} className="border border-gray-200 rounded-lg p-3">
                       <h4 className="text-sm font-medium text-gray-900 mb-2">{user.name}</h4>
                       <div className="space-y-2">
-                        {user.players
-                          .map((player) => {
-                            const participation = eventParticipations.find(p => p.playerId === player.id);
-                            const playerStatus = participation?.status || 'undecided';
-                            const parentStatus = participation?.parentParticipation || 'undecided';
-                            return { player, participation, playerStatus, parentStatus };
-                          })
-                          .sort((a, b) => {
-                            // 参加状況でソート: 参加 → 不参加 → 未入力
-                            const statusOrder = { 'attending': 0, 'not_attending': 1, 'undecided': 2 };
-                            const aOrder = statusOrder[a.playerStatus as keyof typeof statusOrder];
-                            const bOrder = statusOrder[b.playerStatus as keyof typeof statusOrder];
-                            return aOrder - bOrder;
-                          })
-                          .map(({ player, participation, playerStatus, parentStatus }) => (
+                        {sortedPlayers.map(({ player, participation, playerStatus, parentStatus }) => (
                             <div key={player.id} className="space-y-1">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs font-medium text-gray-700">
                                   {getPlayerDisplayName(player)} ({player.grade}年生)
+                                </span>
+                                <span className="text-xs text-gray-400">
+                                  {playerStatus === 'attending' ? '✅' : playerStatus === 'not_attending' ? '❌' : '⏰'}
                                 </span>
                               </div>
                               
@@ -428,6 +445,14 @@ const ParticipationProgressPage: React.FC = () => {
                                     <div className="flex items-center space-x-1">
                                       <Mic className="w-3 h-3" />
                                       <span>審判担当</span>
+                                    </div>
+                                  )}
+                                  {participation.comment && participation.comment.trim() && (
+                                    <div className="flex items-start space-x-1 mt-2">
+                                      <MessageCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                                      <span className="text-xs text-gray-600 leading-relaxed">
+                                        {participation.comment}
+                                      </span>
                                     </div>
                                   )}
                                 </div>
