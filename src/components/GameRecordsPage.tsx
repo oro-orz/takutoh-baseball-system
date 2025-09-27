@@ -5,6 +5,7 @@ import { getFiles, deleteFile, UploadedFile } from '../utils/fileUpload';
 import { eventService } from '../services/eventService';
 import { gameRecordService } from '../services/gameRecordService';
 import { fileService } from '../services/fileService';
+import { supabase } from '../services/supabase';
 // import { FileUploadArea, FileList } from './FileUpload';
 import { Trophy, Upload, Eye, Edit, Save, X, FileText, ChevronDown, Paperclip, Clock } from 'lucide-react';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
@@ -241,15 +242,65 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
   //   }
   // };
 
-  const handleFilesUploaded = (files: UploadedFile[]) => {
-    setUploadedFiles(prev => [...prev, ...files]);
-    
-    // アップロードされたファイルを現在の記録に追加
-    if (selectedEventId) {
-      setCurrentRecord(prev => ({
-        ...prev,
-        files: [...(prev.files || []), ...files.map(f => f.id)]
-      }));
+  const handleFilesUploaded = async (files: UploadedFile[]) => {
+    try {
+      // 各ファイルをSupabaseストレージにアップロードしてからデータベースに保存
+      const savedFiles: UploadedFile[] = [];
+      for (const file of files) {
+        // ファイルをSupabaseストレージにアップロード
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `game-records/${fileName}`;
+        
+        // File オブジェクトを取得（URL.createObjectURLから）
+        const response = await fetch(file.url);
+        const blob = await response.blob();
+        
+        const { error: uploadError } = await supabase.storage
+          .from('files')
+          .upload(filePath, blob);
+          
+        if (uploadError) {
+          console.error('ファイルアップロードに失敗しました:', uploadError);
+          continue;
+        }
+        
+        // 公開URLを取得
+        const { data: urlData } = supabase.storage
+          .from('files')
+          .getPublicUrl(filePath);
+        
+        // データベースにファイル情報を保存
+        const savedFile = await fileService.createFile({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: urlData.publicUrl,
+          uploaded_by: 'admin' // 管理者がアップロード
+        });
+        
+        savedFiles.push({
+          id: savedFile.id,
+          name: savedFile.name,
+          size: savedFile.size,
+          type: savedFile.type,
+          url: savedFile.url,
+          uploadedAt: savedFile.created_at || new Date().toISOString()
+        });
+      }
+      
+      // ローカル状態を更新
+      setUploadedFiles(prev => [...prev, ...savedFiles]);
+      
+      // アップロードされたファイルを現在の記録に追加
+      if (selectedEventId) {
+        setCurrentRecord(prev => ({
+          ...prev,
+          files: [...(prev.files || []), ...savedFiles.map(f => f.id)]
+        }));
+      }
+    } catch (error) {
+      console.error('ファイル保存に失敗しました:', error);
     }
   };
 
