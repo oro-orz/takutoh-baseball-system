@@ -194,7 +194,7 @@ const EventManagementPage: React.FC = () => {
             type: file.type,
             url: file.url,
             event_id: savedEvent.id,
-            uploaded_by: authState.user?.id || null // 現在のユーザーID
+            uploaded_by: authState.user?.id // 現在のユーザーID
           });
         }
       }

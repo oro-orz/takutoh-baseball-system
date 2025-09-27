@@ -192,7 +192,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
               type: file.type,
               url: file.url,
               game_record_id: savedRecord.id,
-              uploaded_by: authState.user?.id || null // 現在のユーザーID
+              uploaded_by: authState.user?.id // 現在のユーザーID
             });
           }
         }
