@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Event, GameRecord } from '../types';
 import { getEvents, getGameRecords, saveGameRecords } from '../utils/storage';
 import { getStoredFiles, deleteFile, UploadedFile } from '../utils/fileUpload';
+import { eventService } from '../services/eventService';
 // import { FileUploadArea, FileList } from './FileUpload';
 import { Trophy, Upload, Eye, Edit, Save, X, FileText, ChevronDown, Paperclip, Check, Minus, Clock } from 'lucide-react';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
@@ -25,31 +26,58 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
   });
 
   useEffect(() => {
-    const loadedEvents = getEvents();
+    loadEvents();
     const loadedRecords = getGameRecords();
     const loadedFiles = getStoredFiles();
     
-    setEvents(loadedEvents);
     setGameRecords(loadedRecords);
     setUploadedFiles(loadedFiles);
+  }, []);
 
-    if (loadedEvents.length > 0) {
-      const gameEvents = loadedEvents.filter(event => event.type !== 'practice');
-      // 初期表示は最近の試合（30日以内）を表示
-      const recentGameEvents = gameEvents.filter(event => {
-        const eventDate = new Date(event.date);
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        return eventDate >= thirtyDaysAgo;
-      });
-      const sortedEvents = [...recentGameEvents].sort((a, b) =>
-        new Date(a.date).getTime() - new Date(b.date).getTime()
-      );
-      if (sortedEvents.length > 0) {
-        setSelectedEventId(sortedEvents[0].id);
+  const loadEvents = async () => {
+    try {
+      const loadedEvents = await eventService.getEvents();
+      setEvents(loadedEvents);
+
+      if (loadedEvents.length > 0) {
+        const gameEvents = loadedEvents.filter(event => event.type !== 'practice');
+        // 初期表示は最近の試合（30日以内）を表示
+        const recentGameEvents = gameEvents.filter(event => {
+          const eventDate = new Date(event.date);
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          return eventDate >= thirtyDaysAgo;
+        });
+        const sortedEvents = [...recentGameEvents].sort((a, b) =>
+          new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+        if (sortedEvents.length > 0) {
+          setSelectedEventId(sortedEvents[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load events:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedEvents = getEvents();
+      setEvents(loadedEvents);
+
+      if (loadedEvents.length > 0) {
+        const gameEvents = loadedEvents.filter(event => event.type !== 'practice');
+        const recentGameEvents = gameEvents.filter(event => {
+          const eventDate = new Date(event.date);
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          return eventDate >= thirtyDaysAgo;
+        });
+        const sortedEvents = [...recentGameEvents].sort((a, b) =>
+          new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+        if (sortedEvents.length > 0) {
+          setSelectedEventId(sortedEvents[0].id);
+        }
       }
     }
-  }, []);
+  };
 
   // 試合記録対象のイベントをフィルタリング（練習以外）
   const gameEvents = events.filter(event => event.type !== 'practice');

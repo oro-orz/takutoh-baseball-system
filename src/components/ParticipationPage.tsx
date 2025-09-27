@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Event, Participation } from '../types';
 import { getEvents, getParticipations } from '../utils/storage';
+import { eventService } from '../services/eventService';
 import { Users, CheckCircle, Clock, Eye } from 'lucide-react';
 import EventDetailModal from './EventDetailModal';
 import ParticipationForm from './ParticipationForm';
@@ -15,11 +16,22 @@ const ParticipationPage: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'pending'>('all');
 
   useEffect(() => {
-    const loadedEvents = getEvents();
+    loadEvents();
     const loadedParticipations = getParticipations();
-    setEvents(loadedEvents);
     setParticipations(loadedParticipations);
   }, []);
+
+  const loadEvents = async () => {
+    try {
+      const loadedEvents = await eventService.getEvents();
+      setEvents(loadedEvents);
+    } catch (error) {
+      console.error('Failed to load events:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedEvents = getEvents();
+      setEvents(loadedEvents);
+    }
+  };
 
   const selectedEvent = events.find(e => e.id === selectedEventId);
   const user = authState.user;

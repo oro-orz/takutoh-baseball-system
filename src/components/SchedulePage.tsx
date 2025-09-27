@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Event, EventType } from '../types';
 import { getEvents } from '../utils/storage';
+import { eventService } from '../services/eventService';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import EventDetailModal from './EventDetailModal';
 
@@ -11,9 +12,20 @@ const SchedulePage: React.FC = () => {
   const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
-    const loadedEvents = getEvents();
-    setEvents(loadedEvents);
+    loadEvents();
   }, []);
+
+  const loadEvents = async () => {
+    try {
+      const loadedEvents = await eventService.getEvents();
+      setEvents(loadedEvents);
+    } catch (error) {
+      console.error('Failed to load events:', error);
+      // フォールバック: LocalStorageから読み込み
+      const localEvents = getEvents();
+      setEvents(localEvents);
+    }
+  };
 
   const getEventTypeLabel = (type: EventType): string => {
     switch (type) {

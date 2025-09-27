@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Event, GameRecord } from '../types';
 import { getEvents, getGameRecords, saveGameRecords } from '../utils/storage';
+import { eventService } from '../services/eventService';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
 import { Trophy, Plus, Edit, Trash2, Save, X, Upload, Calendar } from 'lucide-react';
 
@@ -17,11 +18,22 @@ const GameRecordManagementPage: React.FC = () => {
   });
 
   useEffect(() => {
-    const loadedEvents = getEvents();
+    loadEvents();
     const loadedRecords = getGameRecords();
-    setEvents(loadedEvents);
     setGameRecords(loadedRecords);
   }, []);
+
+  const loadEvents = async () => {
+    try {
+      const loadedEvents = await eventService.getEvents();
+      setEvents(loadedEvents);
+    } catch (error) {
+      console.error('Failed to load events:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedEvents = getEvents();
+      setEvents(loadedEvents);
+    }
+  };
 
   const getEventTypeLabel = (type: string): string => {
     switch (type) {

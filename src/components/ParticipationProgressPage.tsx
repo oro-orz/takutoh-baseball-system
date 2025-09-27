@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Event, Participation, User, ParticipationSummary } from '../types';
 import { getEvents, getParticipations, getUsers } from '../utils/storage';
+import { eventService } from '../services/eventService';
 import { getPlayerDisplayName } from '../utils/playerName';
 import { Users, Car, Package, Mic, CheckCircle, XCircle, Clock, X, BarChart } from 'lucide-react';
 
@@ -12,13 +13,24 @@ const ParticipationProgressPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
-    const loadedEvents = getEvents();
+    loadEvents();
     const loadedParticipations = getParticipations();
     const loadedUsers = getUsers();
-    setEvents(loadedEvents);
     setParticipations(loadedParticipations);
     setUsers(loadedUsers);
   }, []);
+
+  const loadEvents = async () => {
+    try {
+      const loadedEvents = await eventService.getEvents();
+      setEvents(loadedEvents);
+    } catch (error) {
+      console.error('Failed to load events:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedEvents = getEvents();
+      setEvents(loadedEvents);
+    }
+  };
 
   const selectedEvent = events.find(e => e.id === selectedEventId);
   const eventParticipations = participations.filter(p => p.eventId === selectedEventId);
