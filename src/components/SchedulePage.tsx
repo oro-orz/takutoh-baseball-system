@@ -67,6 +67,12 @@ const SchedulePage: React.FC = () => {
     });
   };
 
+  const formatTime = (timeString: string): string => {
+    if (!timeString) return '';
+    // HH:MM:SS または HH:MM の形式を HH:MM に統一
+    return timeString.substring(0, 5);
+  };
+
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
@@ -161,7 +167,7 @@ const SchedulePage: React.FC = () => {
                   <>
                     <span className="mx-1">•</span>
                     <Clock className="w-3 h-3" />
-                    <span>集合: {event.meetingTime}</span>
+                    <span>集合: {formatTime(event.meetingTime)}</span>
                   </>
                 )}
               </div>

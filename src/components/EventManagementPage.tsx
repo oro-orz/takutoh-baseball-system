@@ -85,6 +85,12 @@ const EventManagementPage: React.FC = () => {
     });
   };
 
+  const formatTime = (timeString: string): string => {
+    if (!timeString) return '';
+    // HH:MM:SS または HH:MM の形式を HH:MM に統一
+    return timeString.substring(0, 5);
+  };
+
   const resetForm = () => {
     setFormData({
       title: '',
@@ -669,7 +675,7 @@ const EventManagementPage: React.FC = () => {
                       <span>{formatDate(event.date)}</span>
                     </div>
                     <div>📍 {event.location}</div>
-                    {event.meetingTime && <div>⏰ 集合: {event.meetingTime}</div>}
+                    {event.meetingTime && <div>⏰ 集合: {formatTime(event.meetingTime)}</div>}
                     {event.participants && event.participants.length > 0 && (
                       <div>👥 参加: {event.participants.map(p => {
                         const option = participantOptions.find(opt => opt.value === p);

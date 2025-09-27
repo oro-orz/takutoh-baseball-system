@@ -57,6 +57,12 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
     });
   };
 
+  const formatTime = (timeString: string): string => {
+    if (!timeString) return '';
+    // HH:MM:SS または HH:MM の形式を HH:MM に統一
+    return timeString.substring(0, 5);
+  };
+
   const getEventTypeLabel = (type: string): string => {
     switch (type) {
       case 'practice':
@@ -120,7 +126,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
               {event.meetingTime && (
                 <div className="flex items-center space-x-3">
                   <Clock className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm text-gray-900">集合: {event.meetingTime}</span>
+                  <span className="text-sm text-gray-900">集合: {formatTime(event.meetingTime)}</span>
                 </div>
               )}
               <div className="flex items-center space-x-3">
