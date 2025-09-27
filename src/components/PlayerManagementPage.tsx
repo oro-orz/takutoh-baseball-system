@@ -500,38 +500,41 @@ const PlayerManagementPage: React.FC = () => {
       </div>
 
       {/* 学年別フィルター */}
-      <div className="card">
-        <h4 className="text-sm font-semibold text-gray-900 mb-3">学年別表示</h4>
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setSelectedGrade('all')}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-              selectedGrade === 'all'
-                ? 'bg-primary-500 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            全て ({users.length})
-          </button>
-          {getAvailableGrades().map(grade => {
-            const count = users.filter(user => 
-              user.players.some(player => player.grade.toString() === grade)
-            ).length;
-            return (
-              <button
-                key={grade}
-                onClick={() => setSelectedGrade(grade)}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedGrade === grade
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {grade}年 ({count})
-              </button>
-            );
-          })}
-        </div>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => {
+            setSelectedGrade('all');
+            setSelectedUserId(''); // 選手一覧を非表示
+          }}
+          className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            selectedGrade === 'all'
+              ? 'bg-primary-500 text-white shadow-sm'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          全て ({users.length})
+        </button>
+        {getAvailableGrades().map(grade => {
+          const count = users.filter(user => 
+            user.players.some(player => player.grade.toString() === grade)
+          ).length;
+          return (
+            <button
+              key={grade}
+              onClick={() => {
+                setSelectedGrade(grade);
+                setSelectedUserId(''); // 選手一覧を非表示
+              }}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                selectedGrade === grade
+                  ? 'bg-primary-500 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {grade}年 ({count})
+            </button>
+          );
+        })}
       </div>
 
       {/* 保護者選択 */}
