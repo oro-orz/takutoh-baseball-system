@@ -11,6 +11,7 @@ import MyPage from './components/MyPage';
 import GameRecordsPage from './components/GameRecordsPage';
 import PlayerManagementPage from './components/PlayerManagementPage';
 import EventManagementPage from './components/EventManagementPage';
+import SupabaseTestPage from './components/SupabaseTestPage';
 import { initializeSampleData } from './data/sampleData';
 
 const AppContent: React.FC = () => {
@@ -52,12 +53,14 @@ const AppContent: React.FC = () => {
         { id: 'admin', label: '試合記録', icon: Trophy },
         { id: 'profile', label: '選手管理', icon: User },
         { id: 'management', label: 'イベント管理', icon: Settings },
+        { id: 'test', label: 'DBテスト', icon: Settings },
       ]
     : [
         { id: 'schedule', label: '予定', icon: Calendar },
         { id: 'participation', label: '参加入力', icon: Users },
         { id: 'game-records', label: '試合記録', icon: Trophy },
         { id: 'profile', label: 'マイページ', icon: User },
+        { id: 'test', label: 'DBテスト', icon: Settings },
       ];
 
   const renderContent = () => {
@@ -76,6 +79,8 @@ const AppContent: React.FC = () => {
         return isAdmin ? <PlayerManagementPage /> : <MyPage />;
       case 'management':
         return <EventManagementPage />;
+      case 'test':
+        return <SupabaseTestPage />;
       default:
         return <SchedulePage />;
     }
