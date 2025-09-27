@@ -158,9 +158,25 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
       let updatedRecords;
       if (existingRecordIndex >= 0) {
         updatedRecords = [...gameRecords];
-        updatedRecords[existingRecordIndex] = savedRecord;
+        updatedRecords[existingRecordIndex] = {
+          id: savedRecord.id,
+          eventId: savedRecord.event_id,
+          result: (savedRecord.our_score > savedRecord.opponent_score ? 'win' : savedRecord.our_score < savedRecord.opponent_score ? 'lose' : 'draw') as 'win' | 'lose' | 'draw',
+          score: { our: savedRecord.our_score, opponent: savedRecord.opponent_score },
+          opponent: savedRecord.opponent || '',
+          details: savedRecord.details || '',
+          files: []
+        };
       } else {
-        updatedRecords = [...gameRecords, savedRecord];
+        updatedRecords = [...gameRecords, {
+          id: savedRecord.id,
+          eventId: savedRecord.event_id,
+          result: (savedRecord.our_score > savedRecord.opponent_score ? 'win' : savedRecord.our_score < savedRecord.opponent_score ? 'lose' : 'draw') as 'win' | 'lose' | 'draw',
+          score: { our: savedRecord.our_score, opponent: savedRecord.opponent_score },
+          opponent: savedRecord.opponent || '',
+          details: savedRecord.details || '',
+          files: []
+        }];
       }
 
       setGameRecords(updatedRecords);

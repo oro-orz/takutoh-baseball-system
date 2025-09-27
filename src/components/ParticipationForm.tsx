@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Event, Participation, Player } from '../types';
 import { getParticipations, saveParticipations } from '../utils/storage';
 import { participationService } from '../services/participationService';

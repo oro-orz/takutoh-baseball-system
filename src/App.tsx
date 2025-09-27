@@ -1,6 +1,5 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { SupabaseAuthProvider, useSupabaseAuth } from './contexts/SupabaseAuthContext';
 import { Calendar, Users, User, LogOut, Trophy, Settings } from 'lucide-react';
 import LoginPage from './components/LoginPage';
 import SchedulePage from './components/SchedulePage';
@@ -15,7 +14,6 @@ import { initializeSampleData } from './data/sampleData';
 
 const AppContent: React.FC = () => {
   const { authState, logout } = useAuth();
-  const { user, loading, signOut } = useSupabaseAuth();
   const [activeTab, setActiveTab] = React.useState('schedule');
   const [showLogoutDialog, setShowLogoutDialog] = React.useState(false);
 
@@ -25,25 +23,11 @@ const AppContent: React.FC = () => {
   }, []);
 
   // 認証されていない場合はログインページを表示
-  if (!authState.isAuthenticated && !user) {
+  if (!authState.isAuthenticated) {
     return <LoginPage />;
   }
 
-  // ローディング中
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // ユーザーの役割を取得（Supabaseのuser_metadataから）
-  const userRole = user?.user_metadata?.role || 'player';
-  const isAdmin = authState.isAdmin || userRole === 'admin';
+  const isAdmin = authState.isAdmin;
 
   const tabs = isAdmin 
     ? [
@@ -92,7 +76,7 @@ const AppContent: React.FC = () => {
                 託麻東少年野球
               </h1>
               <p className="text-xs text-gray-600">
-                {user?.user_metadata?.name || authState.user?.name}さん
+                {authState.user?.name}さん
               </p>
             </div>
             <button
@@ -155,13 +139,9 @@ const AppContent: React.FC = () => {
                   キャンセル
                 </button>
                 <button
-                  onClick={async () => {
+                  onClick={() => {
                     setShowLogoutDialog(false);
-                    if (user) {
-                      await signOut();
-                    } else {
-                      logout();
-                    }
+                    logout();
                   }}
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
                 >
@@ -178,11 +158,9 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <SupabaseAuthProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </SupabaseAuthProvider>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 

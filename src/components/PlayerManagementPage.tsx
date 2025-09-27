@@ -5,6 +5,13 @@ import { userService } from '../services/userService';
 import { UserPlus, Edit, Trash2, Users, Plus, X } from 'lucide-react';
 import { showSuccess, showError, handleAsyncError } from '../utils/errorHandler';
 
+// 選手フォームコンポーネント
+interface PlayerFormProps {
+  player?: Player;
+  onSubmit: (player: Omit<Player, 'id'>) => void;
+  onCancel: () => void;
+}
+
 // 新入部員（保護者）フォームコンポーネント
 interface NewUserFormProps {
   onSubmit: (user: Omit<User, 'id'>) => void;
@@ -55,8 +62,12 @@ const NewUserForm: React.FC<NewUserFormProps> = ({ onSubmit, onCancel, existingP
     const newUser: Omit<User, 'id'> = {
       name: formData.name.trim(),
       pin: formData.pin.trim(),
+      role: 'parent',
       lineId: formData.lineId.trim(),
-      players: []
+      players: [],
+      defaultCarCapacity: 0,
+      defaultEquipmentCar: false,
+      defaultUmpire: false
     };
 
     onSubmit(newUser);
@@ -275,7 +286,10 @@ const PlayerManagementPage: React.FC = () => {
         pin: u.pin,
         name: u.name,
         role: u.role as 'admin' | 'coach' | 'player' | 'parent',
-        players: u.players || []
+        players: u.players || [],
+        defaultCarCapacity: 0,
+        defaultEquipmentCar: false,
+        defaultUmpire: false
       }));
       setUsers(convertedUsers);
       if (convertedUsers.length > 0) {

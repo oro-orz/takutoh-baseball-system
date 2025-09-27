@@ -73,6 +73,7 @@ export const SAMPLE_USERS: User[] = [
     id: '1',
     pin: '1001',
     name: '田中太郎',
+    role: 'parent',
     players: [
       { id: '1-1', name: '田中一郎', hiraganaName: 'いちろう', grade: 6, position: 'ピッチャー' },
       { id: '1-2', name: '田中二郎', hiraganaName: '(た)じろう', grade: 4, position: 'キャッチャー' }
@@ -85,6 +86,7 @@ export const SAMPLE_USERS: User[] = [
     id: '2',
     pin: '1002',
     name: '佐藤花子',
+    role: 'parent',
     players: [
       { id: '2-1', name: '佐藤二郎', hiraganaName: '(さ)じろう', grade: 5, position: 'ファースト' }
     ],
@@ -96,6 +98,7 @@ export const SAMPLE_USERS: User[] = [
     id: '3',
     pin: '1003',
     name: '鈴木次郎',
+    role: 'parent',
     players: [
       { id: '3-1', name: '鈴木四郎', hiraganaName: 'しろう', grade: 6, position: 'ショート' },
       { id: '3-2', name: '鈴木五郎', hiraganaName: 'ごろう', grade: 3, position: 'セカンド' }

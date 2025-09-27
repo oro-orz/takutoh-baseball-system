@@ -30,7 +30,10 @@ const MyPage: React.FC = () => {
         pin: u.pin,
         name: u.name,
         role: u.role as 'admin' | 'coach' | 'player' | 'parent',
-        players: u.players || []
+        players: u.players || [],
+        defaultCarCapacity: 0,
+        defaultEquipmentCar: false,
+        defaultUmpire: false
       }));
       setUsers(convertedUsers);
     } catch (error) {

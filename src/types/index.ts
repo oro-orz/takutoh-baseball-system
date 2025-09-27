@@ -43,7 +43,7 @@ export interface EventFile {
   id: string;
   name: string;
   url: string;
-  type: 'overview' | 'bracket' | 'parking_map';
+  type?: string; // ファイルタイプを柔軟に
 }
 
 // 選手
@@ -73,6 +73,7 @@ export interface User {
   id: string;
   pin: string;
   name: string;
+  role: 'admin' | 'coach' | 'player' | 'parent';
   lineId?: string; // LINE ID
   players: Player[];
   defaultCarCapacity?: number;
@@ -133,6 +134,7 @@ export interface Scoreboard {
 
 // 試合記録
 export interface GameRecord {
+  id: string;
   eventId: string;
   result: 'win' | 'lose' | 'draw';
   score: {
@@ -141,6 +143,7 @@ export interface GameRecord {
   };
   files: string[];
   opponent?: string; // 対戦相手
+  details?: string; // 詳細
   startingLineup?: StartingLineup[];
   scoreboard?: Scoreboard;
 }

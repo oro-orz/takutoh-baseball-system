@@ -112,8 +112,24 @@ const GameRecordManagementPage: React.FC = () => {
 
       // ローカル状態を更新
       const updatedRecords = editingRecord 
-        ? gameRecords.map(r => r.id === editingRecord.id ? savedRecord : r)
-        : [...gameRecords, savedRecord];
+        ? gameRecords.map(r => r.id === editingRecord.id ? {
+            id: savedRecord.id,
+            eventId: savedRecord.event_id,
+            result: (savedRecord.our_score > savedRecord.opponent_score ? 'win' : savedRecord.our_score < savedRecord.opponent_score ? 'lose' : 'draw') as 'win' | 'lose' | 'draw',
+            score: { our: savedRecord.our_score, opponent: savedRecord.opponent_score },
+            opponent: savedRecord.opponent || '',
+            details: savedRecord.details || '',
+            files: []
+          } : r)
+        : [...gameRecords, {
+            id: savedRecord.id,
+            eventId: savedRecord.event_id,
+            result: (savedRecord.our_score > savedRecord.opponent_score ? 'win' : savedRecord.our_score < savedRecord.opponent_score ? 'lose' : 'draw') as 'win' | 'lose' | 'draw',
+            score: { our: savedRecord.our_score, opponent: savedRecord.opponent_score },
+            opponent: savedRecord.opponent || '',
+            details: savedRecord.details || '',
+            files: []
+          }];
       
       setGameRecords(updatedRecords);
       

@@ -59,7 +59,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             pin: user.pin,
             name: user.name,
             role: user.role,
-            players: user.players || []
+            lineId: user.line_id,
+            players: user.players || [],
+            defaultCarCapacity: 0,
+            defaultEquipmentCar: false,
+            defaultUmpire: false
           },
           isAuthenticated: true,
           isAdmin: user.role === 'admin',
