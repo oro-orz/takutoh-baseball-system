@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { participantService } from '../services/participantService';
 import { participationService } from '../services/participationService';
 import { eventService } from '../services/eventService';
+import { gameRecordService } from '../services/gameRecordService';
 
 const SupabaseTestPage: React.FC = () => {
   const [testResult, setTestResult] = useState<string>('');
@@ -50,20 +51,46 @@ const SupabaseTestPage: React.FC = () => {
     }
   };
 
+  const testGameRecord = async () => {
+    try {
+      // まずイベントを取得
+      const events = await eventService.getEvents();
+      if (events.length === 0) {
+        setTestResult('イベントがありません。まずイベントを作成してください。');
+        return;
+      }
+
+      const newGameRecord = await gameRecordService.createGameRecord({
+        event_id: events[0].id,
+        opponent: 'テストチーム',
+        our_score: 5,
+        opponent_score: 3,
+        details: 'テスト試合記録'
+      });
+      setTestResult(`試合記録作成成功！ID: ${newGameRecord.id}`);
+    } catch (error: any) {
+      console.error('試合記録作成エラー:', error);
+      setTestResult(`試合記録作成エラー: ${error?.message || JSON.stringify(error, null, 2)}`);
+    }
+  };
+
   const testGetData = async () => {
     try {
       const events = await eventService.getEvents();
       const participants = await participantService.getParticipants();
       
       let participations = [];
+      let gameRecords = [];
       if (events.length > 0) {
         participations = await participationService.getParticipationsByEvent(events[0].id);
+        gameRecords = await gameRecordService.getGameRecordsByEvent(events[0].id);
       }
 
       setTestResult(`データ取得成功！
 イベント: ${events.length}件
 参加者: ${participants.length}件
-参加状況: ${participations.length}件`);
+参加状況: ${participations.length}件
+試合記録: ${gameRecords.length}件`);
     } catch (error: any) {
       console.error('データ取得エラー:', error);
       setTestResult(`データ取得エラー: ${error?.message || JSON.stringify(error, null, 2)}`);
@@ -87,6 +114,13 @@ const SupabaseTestPage: React.FC = () => {
           className="w-full px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
         >
           テスト参加状況作成
+        </button>
+        
+        <button
+          onClick={testGameRecord}
+          className="w-full px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+        >
+          テスト試合記録作成
         </button>
         
         <button

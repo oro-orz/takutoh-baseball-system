@@ -3,9 +3,9 @@ import { supabase } from '../lib/supabase'
 export interface GameRecord {
   id: string
   event_id: string
-  opponent?: string
-  our_score?: number
-  opponent_score?: number
+  opponent: string
+  our_score: number
+  opponent_score: number
   details?: string
   created_by?: string
   created_at: string
@@ -29,19 +29,18 @@ export const gameRecordService = {
   },
 
   // イベントの試合記録を取得
-  async getGameRecordByEvent(eventId: string): Promise<GameRecord | null> {
+  async getGameRecordsByEvent(eventId: string): Promise<GameRecord[]> {
     const { data, error } = await supabase
       .from('game_records')
       .select('*')
       .eq('event_id', eventId)
-      .single()
 
     if (error) {
-      console.error('Error fetching game record:', error)
-      return null
+      console.error('Error fetching game records by event:', error)
+      throw error
     }
 
-    return data
+    return data || []
   },
 
   // 試合記録を作成
