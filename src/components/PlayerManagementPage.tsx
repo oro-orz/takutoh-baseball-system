@@ -272,6 +272,7 @@ const PlayerManagementPage: React.FC = () => {
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [showAddUser, setShowAddUser] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+  const [selectedGrade, setSelectedGrade] = useState<string>('all'); // 学年フィルター
 
   useEffect(() => {
     loadUsers();
@@ -307,6 +308,28 @@ const PlayerManagementPage: React.FC = () => {
   };
 
   const selectedUser = users.find(u => u.id === selectedUserId);
+
+  // 学年別フィルター機能
+  const getFilteredUsers = () => {
+    if (selectedGrade === 'all') {
+      return users;
+    }
+
+    return users.filter(user => {
+      // この保護者の選手が選択された学年を含むかチェック
+      return user.players.some(player => player.grade.toString() === selectedGrade);
+    });
+  };
+
+  const getAvailableGrades = () => {
+    const grades = new Set<string>();
+    users.forEach(user => {
+      user.players.forEach(player => {
+        grades.add(player.grade.toString());
+      });
+    });
+    return Array.from(grades).sort((a, b) => parseInt(b) - parseInt(a)); // 6年→1年の順
+  };
 
   const handleAddUser = async (newUser: Omit<User, 'id'>) => {
     const result = await handleAsyncError(async () => {
@@ -476,11 +499,46 @@ const PlayerManagementPage: React.FC = () => {
         </button>
       </div>
 
+      {/* 学年別フィルター */}
+      <div className="card">
+        <h4 className="text-sm font-semibold text-gray-900 mb-3">学年別表示</h4>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedGrade('all')}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              selectedGrade === 'all'
+                ? 'bg-primary-500 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            全て ({users.length})
+          </button>
+          {getAvailableGrades().map(grade => {
+            const count = users.filter(user => 
+              user.players.some(player => player.grade.toString() === grade)
+            ).length;
+            return (
+              <button
+                key={grade}
+                onClick={() => setSelectedGrade(grade)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  selectedGrade === grade
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {grade}年 ({count})
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* 保護者選択 */}
       <div className="card">
         <h4 className="text-sm font-semibold text-gray-900 mb-3">保護者選択</h4>
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {users.map((user) => (
+          {getFilteredUsers().map((user) => (
             <button
               key={user.id}
               onClick={() => setSelectedUserId(user.id)}
@@ -496,6 +554,9 @@ const PlayerManagementPage: React.FC = () => {
               </div>
               <div className="text-xs text-gray-500">
                 選手数: {user.players.length}名
+              </div>
+              <div className="text-xs text-gray-500 mt-1">
+                学年: {user.players.map(p => `${p.grade}年`).join(', ')}
               </div>
             </button>
           ))}

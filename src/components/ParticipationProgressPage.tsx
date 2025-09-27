@@ -266,7 +266,7 @@ const ParticipationProgressPage: React.FC = () => {
           <button
             key={event.id}
             onClick={() => handleEventClick(event.id)}
-            className="w-full p-3 border border-gray-200 rounded-lg text-left hover:bg-gray-50 transition-colors"
+            className="w-full p-3 bg-white border border-gray-200 rounded-lg text-left hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-center justify-between">
               <div>
