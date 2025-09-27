@@ -3,6 +3,7 @@ import { participantService } from '../services/participantService';
 import { participationService } from '../services/participationService';
 import { eventService } from '../services/eventService';
 import { gameRecordService } from '../services/gameRecordService';
+import { userService } from '../services/userService';
 
 const SupabaseTestPage: React.FC = () => {
   const [testResult, setTestResult] = useState<string>('');
@@ -74,10 +75,25 @@ const SupabaseTestPage: React.FC = () => {
     }
   };
 
+  const testUser = async () => {
+    try {
+      const newUser = await userService.createUser({
+        email: 'test@example.com',
+        name: 'テストユーザー',
+        role: 'player'
+      });
+      setTestResult(`ユーザー作成成功！ID: ${newUser.id}`);
+    } catch (error: any) {
+      console.error('ユーザー作成エラー:', error);
+      setTestResult(`ユーザー作成エラー: ${error?.message || JSON.stringify(error, null, 2)}`);
+    }
+  };
+
   const testGetData = async () => {
     try {
       const events = await eventService.getEvents();
       const participants = await participantService.getParticipants();
+      const users = await userService.getUsers();
       
       let participations = [];
       let gameRecords = [];
@@ -90,7 +106,8 @@ const SupabaseTestPage: React.FC = () => {
 イベント: ${events.length}件
 参加者: ${participants.length}件
 参加状況: ${participations.length}件
-試合記録: ${gameRecords.length}件`);
+試合記録: ${gameRecords.length}件
+ユーザー: ${users.length}件`);
     } catch (error: any) {
       console.error('データ取得エラー:', error);
       setTestResult(`データ取得エラー: ${error?.message || JSON.stringify(error, null, 2)}`);
@@ -121,6 +138,13 @@ const SupabaseTestPage: React.FC = () => {
           className="w-full px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
         >
           テスト試合記録作成
+        </button>
+        
+        <button
+          onClick={testUser}
+          className="w-full px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+        >
+          テストユーザー作成
         </button>
         
         <button
