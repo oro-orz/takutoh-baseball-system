@@ -95,6 +95,16 @@ const ParticipationPage: React.FC = () => {
 
   // フィルタリングされたイベント
   const filteredEvents = events.filter(event => {
+    // 未来のイベントのみを表示（今日以降）
+    const eventDate = new Date(event.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // 今日の0時0分0秒
+    const isFutureEvent = eventDate >= today;
+    
+    if (!isFutureEvent) {
+      return false; // 過去のイベントは除外
+    }
+    
     const isCompleted = isParticipationCompleted(event);
     switch (filterStatus) {
       case 'completed':
