@@ -521,8 +521,8 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
       
       // フォールバック: LocalStorageにも保存
       const allParticipations = getParticipations();
-      const updatedParticipations = allParticipations.filter(p => p.eventId !== event.id);
-      saveParticipations([...updatedParticipations, ...participations]);
+      const filteredParticipations = allParticipations.filter(p => p.eventId !== event.id);
+      saveParticipations([...filteredParticipations, ...participations]);
       onSave();
       return true;
     }, '参加状況の保存に失敗しました');
