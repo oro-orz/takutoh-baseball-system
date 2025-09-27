@@ -5,9 +5,11 @@ import { uploadFile, deleteFile } from '../utils/fileUpload';
 import { eventService } from '../services/eventService';
 import { fileService } from '../services/fileService';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
+import { useAuth } from '../contexts/AuthContext';
 import { Calendar, Plus, Edit, Trash2, Save, X, Upload, FileText } from 'lucide-react';
 
 const EventManagementPage: React.FC = () => {
+  const { authState } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -192,7 +194,7 @@ const EventManagementPage: React.FC = () => {
             type: file.type,
             url: file.url,
             event_id: savedEvent.id,
-            uploaded_by: 'admin' // 管理者がアップロード
+            uploaded_by: authState.user?.id || null // 現在のユーザーID
           });
         }
       }

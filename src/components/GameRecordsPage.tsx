@@ -9,12 +9,14 @@ import { supabase } from '../services/supabase';
 // import { FileUploadArea, FileList } from './FileUpload';
 import { Trophy, Upload, Eye, Edit, Save, X, FileText, ChevronDown, Paperclip, Clock } from 'lucide-react';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
+import { useAuth } from '../contexts/AuthContext';
 
 interface GameRecordsPageProps {
   isAdmin: boolean;
 }
 
 const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
+  const { authState } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [gameRecords, setGameRecords] = useState<GameRecord[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -190,7 +192,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
               type: file.type,
               url: file.url,
               game_record_id: savedRecord.id,
-              uploaded_by: 'admin' // 管理者がアップロード
+              uploaded_by: authState.user?.id || null // 現在のユーザーID
             });
           }
         }
