@@ -14,7 +14,7 @@ const SupabaseTestPage: React.FC = () => {
   const testConnection = async () => {
     try {
       // 1. Supabase接続テスト
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('events')
         .select('count')
         .limit(1);
@@ -45,6 +45,8 @@ const SupabaseTestPage: React.FC = () => {
         title: 'Supabaseテストイベント',
         type: 'practice' as const,
         date: new Date().toISOString().split('T')[0],
+        startTime: '09:00',
+        endTime: '12:00',
         location: 'テスト会場',
         eventName: 'Supabaseテスト',
         participants: [],
@@ -147,8 +149,8 @@ const SupabaseTestPage: React.FC = () => {
       <div className="p-4 border rounded-lg">
         <h3 className="font-semibold mb-2">環境変数</h3>
         <div className="text-sm space-y-1">
-          <div>SUPABASE_URL: {import.meta.env.VITE_SUPABASE_URL ? '設定済み' : '未設定'}</div>
-          <div>SUPABASE_KEY: {import.meta.env.VITE_SUPABASE_ANON_KEY ? '設定済み' : '未設定'}</div>
+          <div>SUPABASE_URL: {(import.meta as any).env?.VITE_SUPABASE_URL ? '設定済み' : '未設定'}</div>
+          <div>SUPABASE_KEY: {(import.meta as any).env?.VITE_SUPABASE_ANON_KEY ? '設定済み' : '未設定'}</div>
         </div>
       </div>
     </div>
