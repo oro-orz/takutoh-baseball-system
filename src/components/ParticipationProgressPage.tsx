@@ -407,9 +407,6 @@ const ParticipationProgressPage: React.FC = () => {
                                 <span className="text-xs font-medium text-gray-700">
                                   {getPlayerDisplayName(player)} ({player.grade}年生)
                                 </span>
-                                <span className="text-xs text-gray-400">
-                                  {playerStatus === 'attending' ? '✅' : playerStatus === 'not_attending' ? '❌' : '⏰'}
-                                </span>
                               </div>
                               
                               <div className="space-y-1">

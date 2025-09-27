@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Lock } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
@@ -24,8 +23,12 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="card max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="mx-auto w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center mb-4">
-            <Lock className="w-8 h-8 text-white" />
+          <div className="mx-auto w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg">
+            <img 
+              src="/takuto_logo.png" 
+              alt="託麻東少年野球クラブロゴ" 
+              className="w-16 h-16 object-contain"
+            />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             託麻東少年野球クラブ
