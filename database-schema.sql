@@ -17,6 +17,13 @@ CREATE TABLE events (
   time TIME,
   location TEXT,
   description TEXT,
+  parking TEXT,
+  opponent TEXT,
+  our_score INTEGER,
+  opponent_score INTEGER,
+  details TEXT,
+  parent_bench_support TEXT,
+  reference TEXT,
   cancellation_reason TEXT,
   created_by UUID REFERENCES users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -66,31 +73,31 @@ CREATE INDEX idx_participations_event_id ON participations(event_id);
 CREATE INDEX idx_participations_participant_id ON participations(participant_id);
 CREATE INDEX idx_game_records_event_id ON game_records(event_id);
 
--- RLS (Row Level Security) の設定
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE events ENABLE ROW LEVEL SECURITY;
-ALTER TABLE participants ENABLE ROW LEVEL SECURITY;
-ALTER TABLE participations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE game_records ENABLE ROW LEVEL SECURITY;
+-- RLS (Row Level Security) の設定（テスト用に無効化）
+-- ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE participants ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE participations ENABLE ROW LEVEL SECURITY;
+-- ALTER TABLE game_records ENABLE ROW LEVEL SECURITY;
 
 -- 基本的なポリシー（全員が読み取り可能、管理者のみ書き込み可能）
-CREATE POLICY "Anyone can read events" ON events FOR SELECT USING (true);
-CREATE POLICY "Anyone can read participants" ON participants FOR SELECT USING (true);
-CREATE POLICY "Anyone can read participations" ON participations FOR SELECT USING (true);
-CREATE POLICY "Anyone can read game_records" ON game_records FOR SELECT USING (true);
+-- CREATE POLICY "Anyone can read events" ON events FOR SELECT USING (true);
+-- CREATE POLICY "Anyone can read participants" ON participants FOR SELECT USING (true);
+-- CREATE POLICY "Anyone can read participations" ON participations FOR SELECT USING (true);
+-- CREATE POLICY "Anyone can read game_records" ON game_records FOR SELECT USING (true);
 
-CREATE POLICY "Only admins can modify events" ON events FOR ALL USING (
-  EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role = 'admin')
-);
+-- CREATE POLICY "Only admins can modify events" ON events FOR ALL USING (
+--   EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role = 'admin')
+-- );
 
-CREATE POLICY "Only admins can modify participants" ON participants FOR ALL USING (
-  EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role = 'admin')
-);
+-- CREATE POLICY "Only admins can modify participants" ON participants FOR ALL USING (
+--   EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role = 'admin')
+-- );
 
-CREATE POLICY "Only admins can modify participations" ON participations FOR ALL USING (
-  EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role = 'admin')
-);
+-- CREATE POLICY "Only admins can modify participations" ON participations FOR ALL USING (
+--   EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role = 'admin')
+-- );
 
-CREATE POLICY "Only admins can modify game_records" ON game_records FOR ALL USING (
-  EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role = 'admin')
-);
+-- CREATE POLICY "Only admins can modify game_records" ON game_records FOR ALL USING (
+--   EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role = 'admin')
+-- );
