@@ -292,7 +292,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
           size: file.size,
           type: file.type,
           url: urlData.publicUrl,
-          uploaded_by: 'admin' // 管理者がアップロード
+          uploaded_by: authState.user?.id // 現在のユーザーID
         });
         
         console.log('データベース保存成功:', savedFile);
