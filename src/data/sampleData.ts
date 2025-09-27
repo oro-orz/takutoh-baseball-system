@@ -3,69 +3,8 @@ import { getStoredData, setStoredData, STORAGE_KEYS } from '../utils/storage';
 
 // サンプルデータ
 export const SAMPLE_EVENTS: Event[] = [
-  {
-    id: '1',
-    title: '平日練習',
-    type: 'practice',
-    date: '2024-01-15',
-    startTime: '18:00',
-    endTime: '20:00',
-    location: '託麻東小学校グラウンド',
-    description: '基本練習とバッティング練習',
-    items: ['グローブ', 'バット', 'ヘルメット', '水筒'],
-    parking: '校舎横駐車場をご利用ください'
-  },
-  {
-    id: '2',
-    title: '練習試合 vs 城東少年野球',
-    type: 'practice_game',
-    date: '2024-01-20',
-    startTime: '09:00',
-    endTime: '12:00',
-    location: '託麻東小学校グラウンド',
-    opponent: '城東少年野球',
-    description: '練習試合を行います',
-    items: ['ユニフォーム', 'グローブ', 'バット', 'ヘルメット', '水筒'],
-    parking: '校舎横駐車場をご利用ください'
-  },
-        {
-          id: '3',
-          title: '公式戦 第2戦',
-          type: 'official_game',
-          date: '2024-01-27',
-          startTime: '10:00',
-          endTime: '15:00',
-          location: '城南中学校グラウンド',
-          opponent: '城南少年野球',
-          description: '公式戦第2戦',
-          items: ['ユニフォーム', 'グローブ', 'バット', 'ヘルメット', '水筒', 'お弁当'],
-          parking: '学校駐車場（台数制限あり）'
-        },
-  {
-    id: '4',
-    title: '公式戦 第1戦',
-    type: 'official_game',
-    date: '2024-02-03',
-    startTime: '09:00',
-    endTime: '16:00',
-    location: '熊本市総合運動場',
-    opponent: '桜井少年野球',
-    description: '公式戦第1戦',
-    items: ['ユニフォーム', 'グローブ', 'バット', 'ヘルメット', '水筒', 'お弁当'],
-    parking: '総合運動場駐車場'
-  },
-  {
-    id: '5',
-    title: '焼肉会',
-    type: 'other',
-    date: '2024-02-10',
-    startTime: '18:00',
-    endTime: '21:00',
-    location: '焼肉屋 牛角',
-    description: 'チーム懇親会',
-    items: ['参加費 3,000円'],
-    parking: '店舗駐車場'
-  }
+  // 現在は2025年なので、過去のイベントは削除
+  // 必要に応じて新しいイベントを追加してください
 ];
 
 export const SAMPLE_USERS: User[] = [
@@ -117,11 +56,14 @@ export const SAMPLE_ADMIN: Admin = {
 
 // 初期データの設定
 export const initializeSampleData = () => {
-  // イベントデータ
-  const existingEvents = getStoredData(STORAGE_KEYS.EVENTS, []);
-  if (existingEvents.length === 0) {
-    setStoredData(STORAGE_KEYS.EVENTS, SAMPLE_EVENTS);
-  }
+  // イベントデータ - 空の配列で初期化（過去データをクリア）
+  setStoredData(STORAGE_KEYS.EVENTS, []);
+  
+  // 参加データ - 空の配列で初期化（過去データをクリア）
+  setStoredData(STORAGE_KEYS.PARTICIPATIONS, []);
+  
+  // 試合記録データ - 空の配列で初期化（過去データをクリア）
+  setStoredData(STORAGE_KEYS.GAME_RECORDS, []);
   
   // ユーザーデータ
   const existingUsers = getStoredData(STORAGE_KEYS.USERS, []);

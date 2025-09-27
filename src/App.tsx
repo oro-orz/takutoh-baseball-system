@@ -33,16 +33,16 @@ const AppContent: React.FC = () => {
   const tabs = isAdmin 
     ? [
         { id: 'schedule', label: '予定', icon: Calendar },
-        { id: 'progress', label: '進捗確認', icon: Users },
+        { id: 'progress', label: '進捗確認', icon: UserCheck },
         { id: 'admin', label: '試合記録', icon: Trophy },
         { id: 'profile', label: '選手管理', icon: User },
         { id: 'management', label: 'イベント管理', icon: Settings },
       ]
     : [
         { id: 'schedule', label: '予定', icon: Calendar },
-        { id: 'participation', label: '参加入力', icon: Users },
-        { id: 'roster', label: '選手名簿', icon: UserCheck },
+        { id: 'participation', label: '参加入力', icon: UserCheck },
         { id: 'game-records', label: '試合記録', icon: Trophy },
+        { id: 'roster', label: '選手名簿', icon: Users },
         { id: 'profile', label: 'マイページ', icon: User },
       ];
 
@@ -77,7 +77,7 @@ const AppContent: React.FC = () => {
           <div className="flex justify-between items-center h-14">
             <div>
               <h1 className="text-lg font-bold text-gray-900">
-                託麻東少年野球
+                託麻東少年野球クラブ
               </h1>
               <p className="text-xs text-gray-600">
                 {authState.user?.name}さん
@@ -107,14 +107,14 @@ const AppContent: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center py-2 px-1 min-w-0 flex-1 ${
+                className={`flex flex-col items-center justify-center py-1.5 px-1 min-w-0 flex-1 ${
                   activeTab === tab.id
                     ? 'text-primary-600'
                     : 'text-gray-500'
                 }`}
               >
-                <Icon className="w-5 h-5 mb-1" />
-                <span className="text-xs font-medium truncate">{tab.label}</span>
+                <Icon className="w-4 h-4 mb-0.5" />
+                <span className="text-xs font-medium truncate leading-tight">{tab.label}</span>
               </button>
             );
           })}

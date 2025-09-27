@@ -67,7 +67,7 @@ export const uploadFile = async (file: File, eventId?: string, gameRecordId?: st
 
     return uploadedFile;
   } catch (error) {
-    console.error('Failed to upload file:', error);
+      console.error('ファイルアップロードに失敗しました:', error);
     // フォールバック: LocalStorageに保存
     const base64 = await fileToBase64(file);
     const uploadedFile: UploadedFile = {
@@ -120,7 +120,7 @@ export const getFiles = async (eventId?: string, gameRecordId?: string): Promise
       uploadedAt: f.created_at
     }));
   } catch (error) {
-    console.error('Failed to load files:', error);
+      console.error('ファイル読み込みに失敗しました:', error);
     // フォールバック: LocalStorageから読み込み
     return getStoredFiles();
   }
@@ -131,7 +131,7 @@ export const deleteFile = async (fileId: string): Promise<void> => {
   try {
     await fileService.deleteFile(fileId);
   } catch (error) {
-    console.error('Failed to delete file:', error);
+      console.error('ファイル削除に失敗しました:', error);
     // フォールバック: LocalStorageから削除
     const existingFiles = getStoredFiles();
     const updatedFiles = existingFiles.filter(file => file.id !== fileId);

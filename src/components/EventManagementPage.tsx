@@ -281,7 +281,7 @@ const EventManagementPage: React.FC = () => {
         files: [...(formData.files || []), ...uploadedFiles]
       });
     } catch (error) {
-      console.error('Failed to upload files:', error);
+      console.error('ファイルアップロードに失敗しました:', error);
     }
   };
 
@@ -291,7 +291,7 @@ const EventManagementPage: React.FC = () => {
       const newFiles = (formData.files || []).filter(file => file.id !== fileId);
       setFormData({ ...formData, files: newFiles });
     } catch (error) {
-      console.error('Failed to delete file:', error);
+      console.error('ファイル削除に失敗しました:', error);
       // フォールバック: ローカル状態から削除
       const newFiles = (formData.files || []).filter(file => file.id !== fileId);
       setFormData({ ...formData, files: newFiles });

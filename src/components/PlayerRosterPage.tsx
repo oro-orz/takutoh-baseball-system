@@ -59,6 +59,18 @@ const PlayerRosterPage: React.FC = () => {
     return `${grade}年`;
   };
 
+  const getGradeColor = (grade: number): string => {
+    switch (grade) {
+      case 6: return 'bg-red-100 text-red-800';
+      case 5: return 'bg-orange-100 text-orange-800';
+      case 4: return 'bg-yellow-100 text-yellow-800';
+      case 3: return 'bg-green-100 text-green-800';
+      case 2: return 'bg-blue-100 text-blue-800';
+      case 1: return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const getPositionLabel = (position: string | undefined): string => {
     if (!position) return '未定';
     const positionLabels: { [key: string]: string } = {
@@ -94,124 +106,114 @@ const PlayerRosterPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-md mx-auto">
-        {/* ヘッダー */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <Users className="w-6 h-6 text-primary-500" />
-            <h1 className="text-2xl font-bold text-gray-900">選手名簿</h1>
-          </div>
-          
-          {/* 学年別フィルター */}
-          <div className="flex items-center space-x-3 mb-4">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">学年で絞り込み:</span>
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedGrade('all')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                selectedGrade === 'all'
-                  ? 'bg-primary-500 text-white shadow-sm'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              全て ({filteredPlayers.length})
-            </button>
-            {getAvailableGrades().map(grade => {
-              const count = users.reduce((total, user) => 
-                total + user.players.filter(player => player.grade.toString() === grade).length, 0
-              );
-              return (
-                <button
-                  key={grade}
-                  onClick={() => setSelectedGrade(grade)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    selectedGrade === grade
-                      ? 'bg-primary-500 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {grade}年 ({count})
-                </button>
-              );
-            })}
-          </div>
-        </div>
+    <div className="space-y-4">
+      {/* ヘッダー */}
+      <div className="flex items-center space-x-2">
+        <Users className="w-5 h-5 text-gray-600" />
+        <h2 className="text-md font-semibold text-gray-900">選手名簿</h2>
+      </div>
 
-        {/* 選手一覧 */}
-        <div className="bg-white rounded-lg shadow-sm">
-          {filteredPlayers.length === 0 ? (
-            <div className="p-8 text-center">
-              <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p className="text-gray-500">該当する選手がいません</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {filteredPlayers
-                .sort((a, b) => {
-                  // 学年順（高い順）、次に名前順
-                  if (a.grade !== b.grade) {
-                    return b.grade - a.grade;
-                  }
-                  return a.name.localeCompare(b.name, 'ja');
-                })
-                .map((player, index) => (
-                  <div key={`${player.id}-${index}`} className="p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                              <span className="text-primary-600 font-semibold text-sm">
-                                {player.name.charAt(0)}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-semibold text-gray-900 truncate">
+      {/* 学年別フィルター */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4">
+        <div className="flex items-center space-x-3 mb-3">
+          <Filter className="w-4 h-4 text-gray-500" />
+          <span className="text-sm font-medium text-gray-700">学年で絞り込み</span>
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedGrade('all')}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+              selectedGrade === 'all'
+                ? 'bg-primary-500 text-white shadow-sm'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            全て ({filteredPlayers.length})
+          </button>
+          {getAvailableGrades().map(grade => {
+            const count = users.reduce((total, user) => 
+              total + user.players.filter(player => player.grade.toString() === grade).length, 0
+            );
+            return (
+              <button
+                key={grade}
+                onClick={() => setSelectedGrade(grade)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  selectedGrade === grade
+                    ? 'bg-primary-500 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {grade}年 ({count})
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 選手一覧 */}
+      <div className="space-y-4">
+        {filteredPlayers.length === 0 ? (
+          <div className="p-8 text-center">
+            <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p className="text-gray-500">該当する選手がいません</p>
+          </div>
+        ) : (
+          (() => {
+            // 学年ごとにグループ化
+            const groupedPlayers = filteredPlayers.reduce((groups, player) => {
+              const grade = player.grade;
+              if (!groups[grade]) {
+                groups[grade] = [];
+              }
+              groups[grade].push(player);
+              return groups;
+            }, {} as Record<number, Array<Player & { parentName: string }>>);
+
+            // 学年順（高い順）でソート
+            const sortedGrades = Object.keys(groupedPlayers)
+              .map(Number)
+              .sort((a, b) => b - a);
+
+            return sortedGrades.map(grade => (
+              <div key={grade} className="space-y-2">
+                {/* 学年ヘッダー */}
+                <div className="flex items-center space-x-2">
+                  <span className={`inline-flex items-center px-2 py-1 rounded-md text-sm font-medium ${getGradeColor(grade)}`}>
+                    {getGradeLabel(grade)}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {groupedPlayers[grade].length}名
+                  </span>
+                </div>
+                
+                {/* その学年の選手一覧 */}
+                <div className="space-y-2">
+                  {groupedPlayers[grade]
+                    .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+                    .map((player, index) => (
+                      <div key={`${player.id}-${index}`} className="bg-white border border-gray-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <h3 className="text-sm font-semibold text-gray-900">
                               {player.name}
                             </h3>
-                            <div className="flex items-center space-x-4 mt-1">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {getGradeLabel(player.grade)}
-                              </span>
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                {getPositionLabel(player.position)}
-                              </span>
-                            </div>
+                            <span className="text-xs text-gray-400">
+                              {getPositionLabel(player.position)}
+                            </span>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-        </div>
-
-        {/* 統計情報 */}
-        <div className="mt-6 bg-white rounded-lg shadow-sm p-4">
-          <div className="grid grid-cols-2 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-primary-600">
-                {filteredPlayers.length}
+                    ))}
+                </div>
               </div>
-              <div className="text-sm text-gray-500">総選手数</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-blue-600">
-                {new Set(filteredPlayers.map(p => p.grade)).size}
-              </div>
-              <div className="text-sm text-gray-500">学年数</div>
-            </div>
-          </div>
-        </div>
+            ));
+          })()
+        )}
       </div>
-    </div>
-  );
+      </div>
+    );
 };
 
 export default PlayerRosterPage;

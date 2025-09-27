@@ -24,7 +24,7 @@ export const participationService = {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching participations:', error)
+      console.error('参加状況一覧の取得に失敗しました:', error)
       throw error
     }
 
@@ -39,7 +39,7 @@ export const participationService = {
       .eq('event_id', eventId)
 
     if (error) {
-      console.error('Error fetching participations:', error)
+      console.error('参加状況一覧の取得に失敗しました:', error)
       throw error
     }
 
@@ -55,7 +55,7 @@ export const participationService = {
       .eq('player_id', playerId)
 
     if (error) {
-      console.error('Error fetching participations:', error)
+      console.error('参加状況一覧の取得に失敗しました:', error)
       throw error
     }
 
@@ -71,7 +71,7 @@ export const participationService = {
       .single()
 
     if (error) {
-      console.error('Error creating participation:', error)
+      console.error('参加状況作成に失敗しました:', error)
       throw error
     }
 
@@ -88,7 +88,7 @@ export const participationService = {
       .single()
 
     if (error) {
-      console.error('Error updating participation:', error)
+      console.error('参加状況更新に失敗しました:', error)
       throw error
     }
 
@@ -103,7 +103,7 @@ export const participationService = {
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting participation:', error)
+      console.error('参加状況削除に失敗しました:', error)
       throw error
     }
   }

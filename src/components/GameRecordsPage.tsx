@@ -6,7 +6,7 @@ import { eventService } from '../services/eventService';
 import { gameRecordService } from '../services/gameRecordService';
 import { fileService } from '../services/fileService';
 // import { FileUploadArea, FileList } from './FileUpload';
-import { Trophy, Upload, Eye, Edit, Save, X, FileText, ChevronDown, Paperclip, Check, Minus, Clock } from 'lucide-react';
+import { Trophy, Upload, Eye, Edit, Save, X, FileText, ChevronDown, Paperclip, Clock } from 'lucide-react';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
 
 interface GameRecordsPageProps {
@@ -48,13 +48,13 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
       }));
       setUploadedFiles(convertedFiles);
     } catch (error) {
-      console.error('Failed to load files:', error);
+      console.error('ファイル読み込みに失敗しました:', error);
       // フォールバック: LocalStorageから読み込み
       try {
         const localFiles = await getFiles();
         setUploadedFiles(localFiles);
       } catch (localError) {
-        console.error('Failed to load files from localStorage:', localError);
+        console.error('LocalStorageからのファイル読み込みに失敗しました:', localError);
         setUploadedFiles([]);
       }
     }
@@ -82,7 +82,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
         }
       }
     } catch (error) {
-      console.error('Failed to load events:', error);
+      console.error('イベント読み込みに失敗しました:', error);
       // フォールバック: LocalStorageから読み込み
       const loadedEvents = getEvents();
       setEvents(loadedEvents);
@@ -124,7 +124,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
       }));
       setGameRecords(convertedRecords);
     } catch (error) {
-      console.error('Failed to load game records:', error);
+      console.error('試合記録読み込みに失敗しました:', error);
       // フォールバック: LocalStorageから読み込み
       const loadedRecords = getGameRecords();
       setGameRecords(loadedRecords);
@@ -379,10 +379,20 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-1">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                         <h3 className="text-sm font-semibold text-gray-900 truncate">
                           {event.title}
                         </h3>
+                        {record && (
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            record.result === 'win' 
+                              ? 'bg-green-100 text-green-800'
+                              : record.result === 'lose'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {record.result === 'win' ? '勝利' : record.result === 'lose' ? '敗北' : '引き分け'}
+                          </span>
+                        )}
                       </div>
                       <div className="text-xs text-gray-500">
                         {formatDate(event.date)}
@@ -405,69 +415,39 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
                   <div className="bg-gray-50 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
                       <div className="text-xs text-gray-600">対戦相手</div>
-                      <div className="text-xs text-gray-600">スコア</div>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="text-sm font-medium text-gray-900">
                         {record?.opponent || event.opponent || '対戦相手'}
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="text-lg font-bold text-gray-900">
-                          {record ? (
-                            <span className={record.result === 'win' ? 'text-green-600' : record.result === 'lose' ? 'text-red-600' : 'text-gray-600'}>
-                              {record.score.our} - {record.score.opponent}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">⚪ - ⚪</span>
-                          )}
-                        </div>
-                        {record && (
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                            record.result === 'win' 
-                              ? 'bg-green-100' 
-                              : record.result === 'lose'
-                              ? 'bg-red-100'
-                              : 'bg-gray-100'
-                          }`}>
-                            {record.result === 'win' ? (
-                              <Check className="w-3 h-3 text-green-600" />
-                            ) : record.result === 'lose' ? (
-                              <X className="w-3 h-3 text-red-600" />
-                            ) : (
-                              <Minus className="w-3 h-3 text-gray-600" />
-                            )}
-                          </div>
+                      <div className="text-lg font-bold text-gray-900">
+                        {record ? (
+                          <span className={record.result === 'win' ? 'text-green-600' : record.result === 'lose' ? 'text-red-600' : 'text-gray-600'}>
+                            {record.score.our} - {record.score.opponent}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">⚪ - ⚪</span>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  {/* ステータス表示 */}
-                  <div className="flex items-center justify-between">
-                    <div>
-                      {record ? (
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                          record.result === 'win' 
-                            ? 'bg-green-100 text-green-800'
-                            : record.result === 'lose'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
-                          {record.result === 'win' ? '勝利' : record.result === 'lose' ? '敗北' : '引き分け'}
-                        </span>
-                      ) : (
+                  {/* 記録状況表示（未記録の場合のみ） */}
+                  {!record && (
+                    <div className="flex items-center justify-between">
+                      <div>
                         <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
                           <Clock className="w-3 h-3 mr-1" />
                           未記録
                         </span>
+                      </div>
+                      {isAdmin && (
+                        <div className="text-xs text-gray-400">
+                          新規作成可能
+                        </div>
                       )}
                     </div>
-                    {isAdmin && (
-                      <div className="text-xs text-gray-400">
-                        {record ? '記録済み' : '新規作成可能'}
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
               </button>
               

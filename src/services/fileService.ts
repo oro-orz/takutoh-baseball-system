@@ -22,7 +22,7 @@ export const fileService = {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching files:', error)
+      console.error('ファイル一覧の取得に失敗しました:', error)
       throw error
     }
 
@@ -38,7 +38,7 @@ export const fileService = {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching files by event:', error)
+      console.error('イベント別ファイルの取得に失敗しました:', error)
       throw error
     }
 
@@ -54,7 +54,7 @@ export const fileService = {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching files by game record:', error)
+      console.error('試合記録別ファイルの取得に失敗しました:', error)
       throw error
     }
 
@@ -70,7 +70,7 @@ export const fileService = {
       .single()
 
     if (error) {
-      console.error('Error creating file:', error)
+      console.error('ファイル作成に失敗しました:', error)
       throw error
     }
 
@@ -87,7 +87,7 @@ export const fileService = {
       .single()
 
     if (error) {
-      console.error('Error updating file:', error)
+      console.error('ファイル更新に失敗しました:', error)
       throw error
     }
 
@@ -102,7 +102,7 @@ export const fileService = {
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting file:', error)
+      console.error('ファイル削除に失敗しました:', error)
       throw error
     }
   }

@@ -24,7 +24,7 @@ export const userService = {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching users:', error)
+      console.error('ユーザー一覧の取得に失敗しました:', error)
       throw error
     }
 
@@ -55,7 +55,7 @@ export const userService = {
         // データが見つからない場合
         return null
       }
-      console.error('Error fetching user by pin:', error)
+      console.error('PINによるユーザー取得に失敗しました:', error)
       throw error
     }
 
@@ -93,7 +93,7 @@ export const userService = {
       .single()
 
     if (error) {
-      console.error('Error creating user:', error)
+      console.error('ユーザー作成に失敗しました:', error)
       throw error
     }
 
@@ -132,7 +132,7 @@ export const userService = {
       .single()
 
     if (error) {
-      console.error('Error updating user:', error)
+      console.error('ユーザー更新に失敗しました:', error)
       throw error
     }
 
@@ -158,7 +158,7 @@ export const userService = {
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting user:', error)
+      console.error('ユーザー削除に失敗しました:', error)
       throw error
     }
   }

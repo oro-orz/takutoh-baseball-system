@@ -21,7 +21,7 @@ export const gameRecordService = {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching game records:', error)
+      console.error('試合記録一覧の取得に失敗しました:', error)
       throw error
     }
 
@@ -36,7 +36,7 @@ export const gameRecordService = {
       .eq('event_id', eventId)
 
     if (error) {
-      console.error('Error fetching game records by event:', error)
+      console.error('イベント別試合記録の取得に失敗しました:', error)
       throw error
     }
 
@@ -52,7 +52,7 @@ export const gameRecordService = {
       .single()
 
     if (error) {
-      console.error('Error creating game record:', error)
+      console.error('試合記録作成に失敗しました:', error)
       throw error
     }
 
@@ -69,7 +69,7 @@ export const gameRecordService = {
       .single()
 
     if (error) {
-      console.error('Error updating game record:', error)
+      console.error('試合記録更新に失敗しました:', error)
       throw error
     }
 
@@ -84,7 +84,7 @@ export const gameRecordService = {
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting game record:', error)
+      console.error('試合記録削除に失敗しました:', error)
       throw error
     }
   }

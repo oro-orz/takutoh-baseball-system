@@ -10,7 +10,7 @@ export const eventService = {
       .order('date', { ascending: true })
 
     if (error) {
-      console.error('Error fetching events:', error)
+      console.error('イベント一覧の取得に失敗しました:', error)
       throw error
     }
 
@@ -93,8 +93,8 @@ export const eventService = {
       .single()
 
     if (error) {
-      console.error('Error creating event:', error)
-      console.error('Error details:', JSON.stringify(error, null, 2))
+      console.error('イベント作成に失敗しました:', error)
+      console.error('エラー詳細:', JSON.stringify(error, null, 2))
       throw new Error(`イベント作成エラー: ${error.message || JSON.stringify(error)}`)
     }
 
@@ -167,7 +167,7 @@ export const eventService = {
       .single()
 
     if (error) {
-      console.error('Error updating event:', error)
+      console.error('イベント更新に失敗しました:', error)
       throw error
     }
 
@@ -182,7 +182,7 @@ export const eventService = {
       .eq('id', id)
 
     if (error) {
-      console.error('Error deleting event:', error)
+      console.error('イベント削除に失敗しました:', error)
       throw error
     }
   },
@@ -196,7 +196,7 @@ export const eventService = {
       .single()
 
     if (error) {
-      console.error('Error fetching event:', error)
+      console.error('イベント取得に失敗しました:', error)
       return null
     }
 

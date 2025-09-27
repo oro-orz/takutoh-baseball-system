@@ -38,7 +38,7 @@ const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, o
       }));
       setParticipations(convertedParticipations);
     } catch (error) {
-      console.error('Failed to load participations:', error);
+      console.error('参加状況読み込みに失敗しました:', error);
       // フォールバック: LocalStorageから読み込み
       const localParticipations = getParticipations();
       const eventParticipations = localParticipations.filter(p => p.eventId === event.id);
@@ -437,7 +437,7 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
       }));
       setParticipations(convertedParticipations);
     } catch (error) {
-      console.error('Failed to load participations:', error);
+      console.error('参加状況読み込みに失敗しました:', error);
       // フォールバック: LocalStorageから読み込み
       const localParticipations = getParticipations();
       const eventParticipations = localParticipations.filter(p => p.eventId === event.id);

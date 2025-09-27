@@ -297,7 +297,7 @@ const PlayerManagementPage: React.FC = () => {
         setSelectedUserId(convertedUsers[0].id);
       }
     } catch (error) {
-      console.error('Failed to load users:', error);
+      console.error('ユーザー読み込みに失敗しました:', error);
       // フォールバック: LocalStorageから読み込み
       const loadedUsers = getUsers();
       setUsers(loadedUsers);
@@ -351,7 +351,7 @@ const PlayerManagementPage: React.FC = () => {
         setSelectedUserId(createdUser.id);
         return true;
       } catch (error) {
-        console.error('Failed to add user:', error);
+        console.error('ユーザー追加に失敗しました:', error);
         // フォールバック: LocalStorageに保存
         const user: User = {
           ...newUser,
@@ -394,7 +394,7 @@ const PlayerManagementPage: React.FC = () => {
         saveUsers(updatedUsers);
         return true;
       } catch (error) {
-        console.error('Failed to add player:', error);
+        console.error('選手追加に失敗しました:', error);
         // フォールバック: LocalStorageに保存
         const updatedUsers = users.map(u =>
           u.id === selectedUser.id ? updatedUser : u
@@ -432,7 +432,7 @@ const PlayerManagementPage: React.FC = () => {
         saveUsers(updatedUsers);
         return true;
       } catch (error) {
-        console.error('Failed to edit player:', error);
+        console.error('選手編集に失敗しました:', error);
         // フォールバック: LocalStorageに保存
         const updatedUsers = users.map(u =>
           u.id === selectedUser.id ? updatedUser : u
@@ -469,7 +469,7 @@ const PlayerManagementPage: React.FC = () => {
           saveUsers(updatedUsers);
           return true;
         } catch (error) {
-          console.error('Failed to delete player:', error);
+          console.error('選手削除に失敗しました:', error);
           // フォールバック: LocalStorageに保存
           const updatedUsers = users.map(u =>
             u.id === selectedUser.id ? updatedUser : u

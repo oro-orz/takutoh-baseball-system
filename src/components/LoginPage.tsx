@@ -23,7 +23,7 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="card max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="mx-auto w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4 shadow-lg">
+          <div className="mx-auto w-20 h-20 bg-white rounded-full flex items-center justify-center mb-4">
             <img 
               src="/takuto_logo.png" 
               alt="託麻東少年野球クラブロゴ" 
@@ -33,9 +33,6 @@ const LoginPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
             託麻東少年野球クラブ
           </h1>
-          <p className="text-gray-600">
-            スケジュール管理システム
-          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -72,7 +69,8 @@ const LoginPage: React.FC = () => {
         </form>
 
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p>PINコードをお忘れの場合は管理者にお問い合わせください</p>
+          <p>PINコードをお忘れの場合は</p>
+          <p>管理者にお問い合わせください</p>
         </div>
       </div>
     </div>
