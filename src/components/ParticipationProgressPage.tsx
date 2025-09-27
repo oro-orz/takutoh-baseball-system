@@ -97,6 +97,9 @@ const ParticipationProgressPage: React.FC = () => {
     let equipmentCarCount = 0;
     let umpireCount = 0;
 
+    const selectedEvent = events.find(e => e.id === selectedEventId);
+    const isPracticeEvent = selectedEvent?.type === 'practice';
+
     allPlayers.forEach(player => {
       const participation = eventParticipations.find(p => p.playerId === player.id);
       
@@ -114,41 +117,47 @@ const ParticipationProgressPage: React.FC = () => {
             break;
         }
         
-        // 保護者の参加状況
-        const parentParticipation = participation.parentParticipation;
-        if (parentParticipation) {
-          // 数値の場合は参加人数として加算
-          if (!isNaN(Number(parentParticipation)) && Number(parentParticipation) > 0) {
-            attendingParents += Number(parentParticipation);
-          } else {
-            // 文字列の場合は従来の処理
-            switch (parentParticipation) {
-              case 'attending':
-                attendingParents++;
-                break;
-              case 'not_attending':
-                notAttendingParents++;
-                break;
-              case 'undecided':
-                undecidedParents++;
-                break;
+        // 保護者の参加状況（練習イベント以外のみ集計）
+        if (!isPracticeEvent) {
+          const parentParticipation = participation.parentParticipation;
+          if (parentParticipation) {
+            // 数値の場合は参加人数として加算
+            if (!isNaN(Number(parentParticipation)) && Number(parentParticipation) > 0) {
+              attendingParents += Number(parentParticipation);
+            } else {
+              // 文字列の場合は従来の処理
+              switch (parentParticipation) {
+                case 'attending':
+                  attendingParents++;
+                  break;
+                case 'not_attending':
+                  notAttendingParents++;
+                  break;
+                case 'undecided':
+                  undecidedParents++;
+                  break;
+              }
             }
           }
         }
         
-        // 車出し・道具車・審判
-        if (participation.carCapacity && participation.carCapacity > 0) {
-          carCount += participation.carCapacity;
-        }
-        if (participation.equipmentCar) {
-          equipmentCarCount++;
-        }
-        if (participation.umpire) {
-          umpireCount++;
+        // 車出し・道具車・審判（練習イベント以外のみ集計）
+        if (!isPracticeEvent) {
+          if (participation.carCapacity && participation.carCapacity > 0) {
+            carCount += participation.carCapacity;
+          }
+          if (participation.equipmentCar) {
+            equipmentCarCount++;
+          }
+          if (participation.umpire) {
+            umpireCount++;
+          }
         }
       } else {
         undecidedPlayers++;
-        undecidedParents++;
+        if (!isPracticeEvent) {
+          undecidedParents++;
+        }
       }
     });
 
@@ -310,7 +319,7 @@ const ParticipationProgressPage: React.FC = () => {
               {/* 集計情報 */}
               <div className="mb-4">
                 <h3 className="text-md font-semibold text-gray-900 mb-3">集計情報</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className={`grid gap-3 ${selectedEvent?.type === 'practice' ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <div className="bg-blue-50 p-3 rounded-lg">
                     <div className="flex items-center space-x-2 mb-2">
                       <Users className="w-4 h-4 text-blue-600" />
@@ -324,44 +333,48 @@ const ParticipationProgressPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Users className="w-4 h-4 text-green-600" />
-                      <span className="text-sm font-medium text-green-900">保護者参加</span>
-                    </div>
-                    <div className="text-lg font-bold text-green-900">
-                      {summary.attendingParents}名
-                    </div>
-                    <div className="text-xs text-green-700">
-                      合計
-                    </div>
-                  </div>
+                  {selectedEvent?.type !== 'practice' && (
+                    <>
+                      <div className="bg-green-50 p-3 rounded-lg">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Users className="w-4 h-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-900">保護者参加</span>
+                        </div>
+                        <div className="text-lg font-bold text-green-900">
+                          {summary.attendingParents}名
+                        </div>
+                        <div className="text-xs text-green-700">
+                          合計
+                        </div>
+                      </div>
 
-                  <div className="bg-purple-50 p-3 rounded-lg">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Car className="w-4 h-4 text-purple-600" />
-                      <span className="text-sm font-medium text-purple-900">車出し</span>
-                    </div>
-                    <div className="text-lg font-bold text-purple-900">
-                      {summary.carCount}人分
-                    </div>
-                    <div className="text-xs text-purple-700">
-                      {summary.equipmentCarCount}台の道具車
-                    </div>
-                  </div>
+                      <div className="bg-purple-50 p-3 rounded-lg">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Car className="w-4 h-4 text-purple-600" />
+                          <span className="text-sm font-medium text-purple-900">車出し</span>
+                        </div>
+                        <div className="text-lg font-bold text-purple-900">
+                          {summary.carCount}人分
+                        </div>
+                        <div className="text-xs text-purple-700">
+                          {summary.equipmentCarCount}台の道具車
+                        </div>
+                      </div>
 
-                  <div className="bg-yellow-50 p-3 rounded-lg">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Mic className="w-4 h-4 text-yellow-600" />
-                      <span className="text-sm font-medium text-yellow-900">審判</span>
-                    </div>
-                    <div className="text-lg font-bold text-yellow-900">
-                      {summary.umpireCount}名
-                    </div>
-                    <div className="text-xs text-yellow-700">
-                      審判担当者
-                    </div>
-                  </div>
+                      <div className="bg-yellow-50 p-3 rounded-lg">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Mic className="w-4 h-4 text-yellow-600" />
+                          <span className="text-sm font-medium text-yellow-900">審判</span>
+                        </div>
+                        <div className="text-lg font-bold text-yellow-900">
+                          {summary.umpireCount}名
+                        </div>
+                        <div className="text-xs text-yellow-700">
+                          審判担当者
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 
@@ -416,33 +429,39 @@ const ParticipationProgressPage: React.FC = () => {
                                     選手: {getStatusText(playerStatus)}
                                   </span>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                  {getParentParticipationIcon(parentStatus)}
-                                  <span className="text-xs text-gray-600">
-                                    保護者: {getParentParticipationText(parentStatus)}
-                                  </span>
-                                </div>
+                                {selectedEvent?.type !== 'practice' && (
+                                  <div className="flex items-center space-x-2">
+                                    {getParentParticipationIcon(parentStatus)}
+                                    <span className="text-xs text-gray-600">
+                                      保護者: {getParentParticipationText(parentStatus)}
+                                    </span>
+                                  </div>
+                                )}
                               </div>
 
                               {participation && (
                                 <div className="text-xs text-gray-500 space-y-1">
-                                  {participation.carCapacity && participation.carCapacity > 0 && (
-                                    <div className="flex items-center space-x-1">
-                                      <Car className="w-3 h-3" />
-                                      <span>車出し: {participation.carCapacity}人</span>
-                                    </div>
-                                  )}
-                                  {participation.equipmentCar && (
-                                    <div className="flex items-center space-x-1">
-                                      <Package className="w-3 h-3" />
-                                      <span>道具車担当</span>
-                                    </div>
-                                  )}
-                                  {participation.umpire && (
-                                    <div className="flex items-center space-x-1">
-                                      <Mic className="w-3 h-3" />
-                                      <span>審判担当</span>
-                                    </div>
+                                  {selectedEvent?.type !== 'practice' && (
+                                    <>
+                                      {participation.carCapacity && participation.carCapacity > 0 && (
+                                        <div className="flex items-center space-x-1">
+                                          <Car className="w-3 h-3" />
+                                          <span>車出し: {participation.carCapacity}人</span>
+                                        </div>
+                                      )}
+                                      {participation.equipmentCar && (
+                                        <div className="flex items-center space-x-1">
+                                          <Package className="w-3 h-3" />
+                                          <span>道具車担当</span>
+                                        </div>
+                                      )}
+                                      {participation.umpire && (
+                                        <div className="flex items-center space-x-1">
+                                          <Mic className="w-3 h-3" />
+                                          <span>審判担当</span>
+                                        </div>
+                                      )}
+                                    </>
                                   )}
                                   {participation.comment && participation.comment.trim() && (
                                     <div className="flex items-start space-x-1 mt-2">
