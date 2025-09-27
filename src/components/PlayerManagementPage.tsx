@@ -317,24 +317,23 @@ const PlayerManagementPage: React.FC = () => {
         return false;
       }
 
-      const user: User = {
-        ...newUser,
-        id: `user-${Date.now()}`
-      };
-      
       try {
-        await userService.createUser(user);
+        const createdUser = await userService.createUser(newUser);
         
-        const updatedUsers = [...users, user];
+        const updatedUsers = [...users, createdUser];
         setUsers(updatedUsers);
         saveUsers(updatedUsers);
         
         // 新しく追加したユーザーを選択
-        setSelectedUserId(user.id);
+        setSelectedUserId(createdUser.id);
         return true;
       } catch (error) {
         console.error('Failed to add user:', error);
         // フォールバック: LocalStorageに保存
+        const user: User = {
+          ...newUser,
+          id: `user-${Date.now()}`
+        };
         const updatedUsers = [...users, user];
         setUsers(updatedUsers);
         saveUsers(updatedUsers);

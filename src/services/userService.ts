@@ -1,12 +1,16 @@
 import { supabase } from '../lib/supabase'
+import { User, Player } from '../types'
 
-export interface User {
+export interface SupabaseUser {
   id: string
   pin: string
   name: string
   line_id?: string
   role: 'admin' | 'coach' | 'player' | 'parent'
-  players: any[] // 選手情報の配列
+  players: Player[]
+  default_car_capacity?: number
+  default_equipment_car: boolean
+  default_umpire: boolean
   created_at: string
   updated_at: string
 }
@@ -24,7 +28,18 @@ export const userService = {
       throw error
     }
 
-    return data || []
+    // Supabaseのデータをアプリケーションの型に変換
+    return (data || []).map((u: SupabaseUser) => ({
+      id: u.id,
+      pin: u.pin,
+      name: u.name,
+      role: u.role,
+      lineId: u.line_id,
+      players: u.players || [],
+      defaultCarCapacity: u.default_car_capacity || 0,
+      defaultEquipmentCar: u.default_equipment_car,
+      defaultUmpire: u.default_umpire
+    }))
   },
 
   // PINでユーザーを取得
@@ -44,14 +59,36 @@ export const userService = {
       throw error
     }
 
-    return data
+    // Supabaseのデータをアプリケーションの型に変換
+    return {
+      id: data.id,
+      pin: data.pin,
+      name: data.name,
+      role: data.role,
+      lineId: data.line_id,
+      players: data.players || [],
+      defaultCarCapacity: data.default_car_capacity || 0,
+      defaultEquipmentCar: data.default_equipment_car,
+      defaultUmpire: data.default_umpire
+    }
   },
 
   // ユーザーを作成
-  async createUser(user: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
+  async createUser(user: Omit<User, 'id'>): Promise<User> {
+    const supabaseUser = {
+      pin: user.pin,
+      name: user.name,
+      line_id: user.lineId,
+      role: user.role,
+      players: user.players,
+      default_car_capacity: user.defaultCarCapacity,
+      default_equipment_car: user.defaultEquipmentCar,
+      default_umpire: user.defaultUmpire
+    }
+
     const { data, error } = await supabase
       .from('app_users')
-      .insert([user])
+      .insert([supabaseUser])
       .select()
       .single()
 
@@ -60,14 +97,36 @@ export const userService = {
       throw error
     }
 
-    return data
+    // Supabaseのデータをアプリケーションの型に変換
+    return {
+      id: data.id,
+      pin: data.pin,
+      name: data.name,
+      role: data.role,
+      lineId: data.line_id,
+      players: data.players || [],
+      defaultCarCapacity: data.default_car_capacity || 0,
+      defaultEquipmentCar: data.default_equipment_car,
+      defaultUmpire: data.default_umpire
+    }
   },
 
   // ユーザーを更新
   async updateUser(id: string, user: Partial<User>): Promise<User> {
+    const supabaseUser = {
+      pin: user.pin,
+      name: user.name,
+      line_id: user.lineId,
+      role: user.role,
+      players: user.players,
+      default_car_capacity: user.defaultCarCapacity,
+      default_equipment_car: user.defaultEquipmentCar,
+      default_umpire: user.defaultUmpire
+    }
+
     const { data, error } = await supabase
       .from('app_users')
-      .update(user)
+      .update(supabaseUser)
       .eq('id', id)
       .select()
       .single()
@@ -77,7 +136,18 @@ export const userService = {
       throw error
     }
 
-    return data
+    // Supabaseのデータをアプリケーションの型に変換
+    return {
+      id: data.id,
+      pin: data.pin,
+      name: data.name,
+      role: data.role,
+      lineId: data.line_id,
+      players: data.players || [],
+      defaultCarCapacity: data.default_car_capacity || 0,
+      defaultEquipmentCar: data.default_equipment_car,
+      defaultUmpire: data.default_umpire
+    }
   },
 
   // ユーザーを削除
