@@ -50,13 +50,20 @@ export const eventService = {
       return value;
     };
 
+    // 時間フィールド専用の変換関数
+    const nullIfEmptyTime = (value: any) => {
+      if (value === '' || value === undefined || value === null) return null;
+      if (typeof value === 'string' && value.trim() === '') return null;
+      return value;
+    };
+
     // camelCase を snake_case に変換
     const dbEvent = {
       title: event.title,
       type: event.type,
       date: event.date,
-      start_time: nullIfEmpty(event.startTime),
-      end_time: nullIfEmpty(event.endTime),
+      start_time: nullIfEmptyTime(event.startTime),
+      end_time: nullIfEmptyTime(event.endTime),
       location: nullIfEmpty(event.location),
       opponent: nullIfEmpty(event.opponent),
       description: nullIfEmpty(event.description),
@@ -75,6 +82,9 @@ export const eventService = {
       reference: nullIfEmpty(event.reference),
       cancellation_reason: nullIfEmpty(event.cancellationReason)
     }
+
+    // デバッグ: 送信データをログ出力
+    console.log('Sending event data:', JSON.stringify(dbEvent, null, 2));
 
     const { data, error } = await supabase
       .from('events')
