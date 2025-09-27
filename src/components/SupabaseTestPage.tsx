@@ -47,23 +47,7 @@ const SupabaseTestPage: React.FC = () => {
         date: new Date().toISOString().split('T')[0],
         startTime: '09:00',
         endTime: '12:00',
-        location: 'テスト会場',
-        eventName: 'Supabaseテスト',
-        participants: [],
-        clothing: [],
-        items: [],
-        files: [],
-        lunch: 'not_required' as const,
-        // 必須フィールドを追加
-        opponent: undefined,
-        description: undefined,
-        parking: undefined,
-        meetingTime: undefined,
-        schedule: undefined,
-        preparation: undefined,
-        teaGarbageDuty: undefined,
-        equipmentBenchSupport: undefined,
-        reference: undefined
+        location: 'テスト会場'
       };
 
       const createdEvent = await eventService.createEvent(testEvent);
