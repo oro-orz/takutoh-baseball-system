@@ -5,7 +5,7 @@ import { eventService } from '../services/eventService';
 import { participationService } from '../services/participationService';
 import { userService } from '../services/userService';
 import { getPlayerDisplayName } from '../utils/playerName';
-import { Users, Car, Package, Mic, CheckCircle, XCircle, Clock, X, BarChart } from 'lucide-react';
+import { Users, CheckCircle, XCircle, Clock, Car, Package, Mic, Calendar, MapPin, Eye } from 'lucide-react';
 
 const ParticipationProgressPage: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -115,16 +115,25 @@ const ParticipationProgressPage: React.FC = () => {
         }
         
         // 保護者の参加状況
-        switch (participation.parentParticipation) {
-          case 'attending':
-            attendingParents++;
-            break;
-          case 'not_attending':
-            notAttendingParents++;
-            break;
-          case 'undecided':
-            undecidedParents++;
-            break;
+        const parentParticipation = participation.parentParticipation;
+        if (parentParticipation) {
+          // 数値の場合は参加人数として加算
+          if (!isNaN(Number(parentParticipation)) && Number(parentParticipation) > 0) {
+            attendingParents += Number(parentParticipation);
+          } else {
+            // 文字列の場合は従来の処理
+            switch (parentParticipation) {
+              case 'attending':
+                attendingParents++;
+                break;
+              case 'not_attending':
+                notAttendingParents++;
+                break;
+              case 'undecided':
+                undecidedParents++;
+                break;
+            }
+          }
         }
         
         // 車出し・道具車・審判
@@ -178,6 +187,44 @@ const ParticipationProgressPage: React.FC = () => {
         return <Clock className="w-4 h-4 text-gray-400" />;
       default:
         return <Clock className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
+  const getParentParticipationIcon = (status: string) => {
+    // 数値の場合は参加人数として表示（緑のチェック）
+    if (!isNaN(Number(status)) && Number(status) > 0) {
+      return <CheckCircle className="w-4 h-4 text-green-600" />;
+    }
+    
+    // 文字列の場合は従来の処理
+    switch (status) {
+      case 'attending':
+        return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'not_attending':
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      case 'undecided':
+        return <Clock className="w-4 h-4 text-gray-400" />;
+      default:
+        return <Clock className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
+  const getParentParticipationText = (status: string) => {
+    // 数値の場合は参加人数として表示
+    if (!isNaN(Number(status)) && Number(status) > 0) {
+      return `${status}名`;
+    }
+    
+    // 文字列の場合は従来の処理
+    switch (status) {
+      case 'attending':
+        return '参加';
+      case 'not_attending':
+        return '不参加';
+      case 'undecided':
+        return '未定';
+      default:
+        return '未定';
     }
   };
 
@@ -275,10 +322,10 @@ const ParticipationProgressPage: React.FC = () => {
                       <span className="text-sm font-medium text-green-900">保護者参加</span>
                     </div>
                     <div className="text-lg font-bold text-green-900">
-                      {summary.attendingParents}/{summary.totalPlayers}
+                      {summary.attendingParents}名
                     </div>
                     <div className="text-xs text-green-700">
-                      参加率: {summary.totalPlayers > 0 ? Math.round((summary.attendingParents / summary.totalPlayers) * 100) : 0}%
+                      合計
                     </div>
                   </div>
 
@@ -348,9 +395,9 @@ const ParticipationProgressPage: React.FC = () => {
                                   </span>
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                  {getStatusIcon(parentStatus)}
+                                  {getParentParticipationIcon(parentStatus)}
                                   <span className="text-xs text-gray-600">
-                                    保護者: {getStatusText(parentStatus)}
+                                    保護者: {getParentParticipationText(parentStatus)}
                                   </span>
                                 </div>
                               </div>
