@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Event, GameRecord } from '../types';
 import { getEvents, getGameRecords, saveGameRecords } from '../utils/storage';
 import { eventService } from '../services/eventService';
+import { gameRecordService } from '../services/gameRecordService';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
 import { Trophy, Plus, Edit, Trash2, Save, X, Upload, Calendar } from 'lucide-react';
 
@@ -19,8 +20,7 @@ const GameRecordManagementPage: React.FC = () => {
 
   useEffect(() => {
     loadEvents();
-    const loadedRecords = getGameRecords();
-    setGameRecords(loadedRecords);
+    loadGameRecords();
   }, []);
 
   const loadEvents = async () => {
@@ -32,6 +32,28 @@ const GameRecordManagementPage: React.FC = () => {
       // フォールバック: LocalStorageから読み込み
       const loadedEvents = getEvents();
       setEvents(loadedEvents);
+    }
+  };
+
+  const loadGameRecords = async () => {
+    try {
+      const loadedRecords = await gameRecordService.getGameRecords();
+      // Supabaseのデータをアプリケーションの型に変換
+      const convertedRecords: GameRecord[] = loadedRecords.map(r => ({
+        id: r.id,
+        eventId: r.event_id,
+        result: r.our_score > r.opponent_score ? 'win' : r.our_score < r.opponent_score ? 'lose' : 'draw',
+        score: { our: r.our_score, opponent: r.opponent_score },
+        opponent: r.opponent || '',
+        details: r.details || '',
+        files: [] // ファイルは別途管理
+      }));
+      setGameRecords(convertedRecords);
+    } catch (error) {
+      console.error('Failed to load game records:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedRecords = getGameRecords();
+      setGameRecords(loadedRecords);
     }
   };
 
@@ -73,23 +95,29 @@ const GameRecordManagementPage: React.FC = () => {
         throw new Error('イベントを選択してください');
       }
 
-      const newRecord: GameRecord = {
-        eventId: selectedEventId,
-        result: formData.result || 'win',
-        score: formData.score || { our: 0, opponent: 0 },
-        files: formData.files || []
+      const newRecord = {
+        event_id: selectedEventId,
+        opponent: '対戦相手',
+        our_score: formData.score?.our || 0,
+        opponent_score: formData.score?.opponent || 0,
+        details: `結果: ${formData.result || 'win'}`
       };
 
-      let updatedRecords;
+      let savedRecord;
       if (editingRecord) {
-        updatedRecords = gameRecords.map(r => 
-          r.eventId === editingRecord.eventId ? newRecord : r
-        );
+        savedRecord = await gameRecordService.updateGameRecord(editingRecord.id, newRecord);
       } else {
-        updatedRecords = [...gameRecords, newRecord];
+        savedRecord = await gameRecordService.createGameRecord(newRecord);
       }
 
+      // ローカル状態を更新
+      const updatedRecords = editingRecord 
+        ? gameRecords.map(r => r.id === editingRecord.id ? savedRecord : r)
+        : [...gameRecords, savedRecord];
+      
       setGameRecords(updatedRecords);
+      
+      // フォールバック: LocalStorageにも保存
       saveGameRecords(updatedRecords);
       return true;
     }, '試合記録の保存に失敗しました');
@@ -115,6 +143,11 @@ const GameRecordManagementPage: React.FC = () => {
     if (!confirm('この試合記録を削除しますか？')) return;
 
     const result = await handleAsyncError(async () => {
+      const recordToDelete = gameRecords.find(r => r.eventId === eventId);
+      if (recordToDelete) {
+        await gameRecordService.deleteGameRecord(recordToDelete.id);
+      }
+
       const updatedRecords = gameRecords.filter(r => r.eventId !== eventId);
       setGameRecords(updatedRecords);
       saveGameRecords(updatedRecords);

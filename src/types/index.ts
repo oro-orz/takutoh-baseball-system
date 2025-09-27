@@ -73,6 +73,7 @@ export interface User {
   id: string;
   pin: string;
   name: string;
+  lineId?: string; // LINE ID
   players: Player[];
   defaultCarCapacity?: number;
   defaultEquipmentCar: boolean;

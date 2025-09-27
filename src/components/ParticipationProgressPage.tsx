@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Event, Participation, User, ParticipationSummary } from '../types';
 import { getEvents, getParticipations, getUsers } from '../utils/storage';
 import { eventService } from '../services/eventService';
+import { participationService } from '../services/participationService';
+import { userService } from '../services/userService';
 import { getPlayerDisplayName } from '../utils/playerName';
 import { Users, Car, Package, Mic, CheckCircle, XCircle, Clock, X, BarChart } from 'lucide-react';
 
@@ -14,10 +16,8 @@ const ParticipationProgressPage: React.FC = () => {
 
   useEffect(() => {
     loadEvents();
-    const loadedParticipations = getParticipations();
-    const loadedUsers = getUsers();
-    setParticipations(loadedParticipations);
-    setUsers(loadedUsers);
+    loadParticipations();
+    loadUsers();
   }, []);
 
   const loadEvents = async () => {
@@ -29,6 +29,50 @@ const ParticipationProgressPage: React.FC = () => {
       // フォールバック: LocalStorageから読み込み
       const loadedEvents = getEvents();
       setEvents(loadedEvents);
+    }
+  };
+
+  const loadParticipations = async () => {
+    try {
+      const loadedParticipations = await participationService.getParticipations();
+      // Supabaseのデータをアプリケーションの型に変換
+      const convertedParticipations: Participation[] = loadedParticipations.map(p => ({
+        eventId: p.event_id,
+        playerId: p.player_id,
+        status: p.status as 'attending' | 'not_attending' | 'undecided',
+        parentParticipation: p.parent_participation as 'attending' | 'not_attending' | 'undecided',
+        carCapacity: p.car_capacity || 0,
+        equipmentCar: p.equipment_car,
+        umpire: p.umpire,
+        transport: p.transport as 'can_transport' | 'cannot_transport' | undefined,
+        comment: p.comment || ''
+      }));
+      setParticipations(convertedParticipations);
+    } catch (error) {
+      console.error('Failed to load participations:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedParticipations = getParticipations();
+      setParticipations(loadedParticipations);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      const loadedUsers = await userService.getUsers();
+      // Supabaseのデータをアプリケーションの型に変換
+      const convertedUsers: User[] = loadedUsers.map(u => ({
+        id: u.id,
+        pin: u.pin,
+        name: u.name,
+        role: u.role as 'admin' | 'coach' | 'player' | 'parent',
+        players: u.players || []
+      }));
+      setUsers(convertedUsers);
+    } catch (error) {
+      console.error('Failed to load users:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedUsers = getUsers();
+      setUsers(loadedUsers);
     }
   };
 
@@ -271,12 +315,21 @@ const ParticipationProgressPage: React.FC = () => {
                     <div key={user.id} className="border border-gray-200 rounded-lg p-3">
                       <h4 className="text-sm font-medium text-gray-900 mb-2">{user.name}</h4>
                       <div className="space-y-2">
-                        {user.players.map((player) => {
-                          const participation = eventParticipations.find(p => p.playerId === player.id);
-                          const playerStatus = participation?.status || 'undecided';
-                          const parentStatus = participation?.parentParticipation || 'undecided';
-
-                          return (
+                        {user.players
+                          .map((player) => {
+                            const participation = eventParticipations.find(p => p.playerId === player.id);
+                            const playerStatus = participation?.status || 'undecided';
+                            const parentStatus = participation?.parentParticipation || 'undecided';
+                            return { player, participation, playerStatus, parentStatus };
+                          })
+                          .sort((a, b) => {
+                            // 参加状況でソート: 参加 → 不参加 → 未入力
+                            const statusOrder = { 'attending': 0, 'not_attending': 1, 'undecided': 2 };
+                            const aOrder = statusOrder[a.playerStatus as keyof typeof statusOrder];
+                            const bOrder = statusOrder[b.playerStatus as keyof typeof statusOrder];
+                            return aOrder - bOrder;
+                          })
+                          .map(({ player, participation, playerStatus, parentStatus }) => (
                             <div key={player.id} className="space-y-1">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs font-medium text-gray-700">
@@ -322,8 +375,7 @@ const ParticipationProgressPage: React.FC = () => {
                                 </div>
                               )}
                             </div>
-                          );
-                        })}
+                          ))}
                       </div>
                     </div>
                   ))}

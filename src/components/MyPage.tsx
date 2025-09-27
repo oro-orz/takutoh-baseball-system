@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { User, Player } from '../types';
 import { getUsers, saveUsers } from '../utils/storage';
+import { userService } from '../services/userService';
 import { User as UserIcon, Plus, Edit, Trash2 } from 'lucide-react';
 
 const MyPage: React.FC = () => {
@@ -17,9 +18,28 @@ const MyPage: React.FC = () => {
   }
 
   useEffect(() => {
-    const loadedUsers = getUsers();
-    setUsers(loadedUsers);
+    loadUsers();
   }, []);
+
+  const loadUsers = async () => {
+    try {
+      const loadedUsers = await userService.getUsers();
+      // Supabaseのデータをアプリケーションの型に変換
+      const convertedUsers: User[] = loadedUsers.map(u => ({
+        id: u.id,
+        pin: u.pin,
+        name: u.name,
+        role: u.role as 'admin' | 'coach' | 'player' | 'parent',
+        players: u.players || []
+      }));
+      setUsers(convertedUsers);
+    } catch (error) {
+      console.error('Failed to load users:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedUsers = getUsers();
+      setUsers(loadedUsers);
+    }
+  };
 
   // usersが読み込まれるまで待つ
   if (users.length === 0) {
@@ -32,16 +52,29 @@ const MyPage: React.FC = () => {
     return <div>ユーザー情報が見つかりません</div>;
   }
 
-  const handleSaveUser = () => {
-    const updatedUsers = users.map(u => 
-      u.id === currentUser.id ? currentUser : u
-    );
-    setUsers(updatedUsers);
-    saveUsers(updatedUsers);
-    setIsEditing(false);
+  const handleSaveUser = async () => {
+    try {
+      await userService.updateUser(currentUser.id, currentUser);
+      
+      const updatedUsers = users.map(u => 
+        u.id === currentUser.id ? currentUser : u
+      );
+      setUsers(updatedUsers);
+      saveUsers(updatedUsers);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to save user:', error);
+      // フォールバック: LocalStorageに保存
+      const updatedUsers = users.map(u => 
+        u.id === currentUser.id ? currentUser : u
+      );
+      setUsers(updatedUsers);
+      saveUsers(updatedUsers);
+      setIsEditing(false);
+    }
   };
 
-  const handleAddPlayer = (newPlayer: Omit<Player, 'id'>) => {
+  const handleAddPlayer = async (newPlayer: Omit<Player, 'id'>) => {
     const player: Player = {
       ...newPlayer,
       id: `${currentUser.id}-${Date.now()}`
@@ -50,40 +83,81 @@ const MyPage: React.FC = () => {
       ...currentUser,
       players: [...currentUser.players, player]
     };
-    const updatedUsers = users.map(u => 
-      u.id === currentUser.id ? updatedUser : u
-    );
-    setUsers(updatedUsers);
-    saveUsers(updatedUsers);
-    setShowAddPlayer(false);
+    
+    try {
+      await userService.updateUser(currentUser.id, updatedUser);
+      
+      const updatedUsers = users.map(u => 
+        u.id === currentUser.id ? updatedUser : u
+      );
+      setUsers(updatedUsers);
+      saveUsers(updatedUsers);
+      setShowAddPlayer(false);
+    } catch (error) {
+      console.error('Failed to add player:', error);
+      // フォールバック: LocalStorageに保存
+      const updatedUsers = users.map(u => 
+        u.id === currentUser.id ? updatedUser : u
+      );
+      setUsers(updatedUsers);
+      saveUsers(updatedUsers);
+      setShowAddPlayer(false);
+    }
   };
 
-  const handleEditPlayer = (playerId: string, updates: Partial<Player>) => {
+  const handleEditPlayer = async (playerId: string, updates: Partial<Player>) => {
     const updatedUser = {
       ...currentUser,
       players: currentUser.players.map(p => 
         p.id === playerId ? { ...p, ...updates } : p
       )
     };
-    const updatedUsers = users.map(u => 
-      u.id === currentUser.id ? updatedUser : u
-    );
-    setUsers(updatedUsers);
-    saveUsers(updatedUsers);
-    setEditingPlayer(null);
-  };
-
-  const handleDeletePlayer = (playerId: string) => {
-    if (confirm('この選手を削除しますか？')) {
-      const updatedUser = {
-        ...currentUser,
-        players: currentUser.players.filter(p => p.id !== playerId)
-      };
+    
+    try {
+      await userService.updateUser(currentUser.id, updatedUser);
+      
       const updatedUsers = users.map(u => 
         u.id === currentUser.id ? updatedUser : u
       );
       setUsers(updatedUsers);
       saveUsers(updatedUsers);
+      setEditingPlayer(null);
+    } catch (error) {
+      console.error('Failed to edit player:', error);
+      // フォールバック: LocalStorageに保存
+      const updatedUsers = users.map(u => 
+        u.id === currentUser.id ? updatedUser : u
+      );
+      setUsers(updatedUsers);
+      saveUsers(updatedUsers);
+      setEditingPlayer(null);
+    }
+  };
+
+  const handleDeletePlayer = async (playerId: string) => {
+    if (confirm('この選手を削除しますか？')) {
+      const updatedUser = {
+        ...currentUser,
+        players: currentUser.players.filter(p => p.id !== playerId)
+      };
+      
+      try {
+        await userService.updateUser(currentUser.id, updatedUser);
+        
+        const updatedUsers = users.map(u => 
+          u.id === currentUser.id ? updatedUser : u
+        );
+        setUsers(updatedUsers);
+        saveUsers(updatedUsers);
+      } catch (error) {
+        console.error('Failed to delete player:', error);
+        // フォールバック: LocalStorageに保存
+        const updatedUsers = users.map(u => 
+          u.id === currentUser.id ? updatedUser : u
+        );
+        setUsers(updatedUsers);
+        saveUsers(updatedUsers);
+      }
     }
   };
 
@@ -132,6 +206,32 @@ const MyPage: React.FC = () => {
               PINコード
             </label>
             <p className="text-gray-900 font-mono">{currentUser.pin}</p>
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              LINE ID
+            </label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={currentUser.lineId || ''}
+                onChange={(e) => {
+                  const updatedUser = { ...currentUser, lineId: e.target.value };
+                  const updatedUsers = users.map(u => 
+                    u.id === currentUser.id ? updatedUser : u
+                  );
+                  setUsers(updatedUsers);
+                }}
+                className="input-field"
+                placeholder="例：tanaka_taro"
+              />
+            ) : (
+              <p className="text-gray-900">{currentUser.lineId || '未設定'}</p>
+            )}
+            <p className="text-xs text-gray-500 mt-1">
+              LINEでの連絡に使用します（任意）
+            </p>
           </div>
         </div>
 

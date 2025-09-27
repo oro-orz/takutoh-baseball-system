@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Event, Participation, Player } from '../types';
 import { getParticipations, saveParticipations } from '../utils/storage';
+import { participationService } from '../services/participationService';
 import { getPlayerDisplayName } from '../utils/playerName';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
@@ -12,9 +13,38 @@ interface ParticipationFormProps {
 }
 
 const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, onSave }) => {
-  const [participations, setParticipations] = useState<Participation[]>(getParticipations());
+  const [participations, setParticipations] = useState<Participation[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [comment, setComment] = useState('');
+
+  useEffect(() => {
+    loadParticipations();
+  }, [event.id]);
+
+  const loadParticipations = async () => {
+    try {
+      const loadedParticipations = await participationService.getParticipationsByEvent(event.id);
+      // Supabaseのデータをアプリケーションの型に変換
+      const convertedParticipations: Participation[] = loadedParticipations.map(p => ({
+        eventId: p.event_id,
+        playerId: p.player_id,
+        status: p.status as 'attending' | 'not_attending' | 'undecided',
+        parentParticipation: p.parent_participation as 'attending' | 'not_attending' | 'undecided',
+        carCapacity: p.car_capacity || 0,
+        equipmentCar: p.equipment_car,
+        umpire: p.umpire,
+        transport: p.transport as 'can_transport' | 'cannot_transport' | undefined,
+        comment: p.comment || ''
+      }));
+      setParticipations(convertedParticipations);
+    } catch (error) {
+      console.error('Failed to load participations:', error);
+      // フォールバック: LocalStorageから読み込み
+      const localParticipations = getParticipations();
+      const eventParticipations = localParticipations.filter(p => p.eventId === event.id);
+      setParticipations(eventParticipations);
+    }
+  };
 
   const eventParticipations = participations.filter(p => p.eventId === event.id);
 
@@ -74,7 +104,36 @@ const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, o
         updateParticipation(players[0].id, { comment });
       }
 
-      saveParticipations(participations);
+      // Supabaseに保存
+      for (const participation of eventParticipations) {
+        const participationData = {
+          event_id: participation.eventId,
+          player_id: participation.playerId,
+          status: participation.status,
+          parent_participation: participation.parentParticipation,
+          car_capacity: participation.carCapacity,
+          equipment_car: participation.equipmentCar,
+          umpire: participation.umpire,
+          transport: participation.transport,
+          comment: participation.comment
+        };
+
+        const existingParticipation = await participationService.getParticipationsByEventAndPlayer(
+          participation.eventId, 
+          participation.playerId
+        );
+
+        if (existingParticipation.length > 0) {
+          await participationService.updateParticipation(existingParticipation[0].id, participationData);
+        } else {
+          await participationService.createParticipation(participationData);
+        }
+      }
+
+      // フォールバック: LocalStorageにも保存
+      const allParticipations = getParticipations();
+      const updatedParticipations = allParticipations.filter(p => p.eventId !== event.id);
+      saveParticipations([...updatedParticipations, ...participations]);
       onSave();
 
       return true;
@@ -353,9 +412,38 @@ interface PracticeFormProps {
 }
 
 const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) => {
-  const [participations, setParticipations] = useState<Participation[]>(getParticipations());
+  const [participations, setParticipations] = useState<Participation[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [comment, setComment] = useState('');
+
+  useEffect(() => {
+    loadParticipations();
+  }, [event.id]);
+
+  const loadParticipations = async () => {
+    try {
+      const loadedParticipations = await participationService.getParticipationsByEvent(event.id);
+      // Supabaseのデータをアプリケーションの型に変換
+      const convertedParticipations: Participation[] = loadedParticipations.map(p => ({
+        eventId: p.event_id,
+        playerId: p.player_id,
+        status: p.status as 'attending' | 'not_attending' | 'undecided',
+        parentParticipation: p.parent_participation as 'attending' | 'not_attending' | 'undecided',
+        carCapacity: p.car_capacity || 0,
+        equipmentCar: p.equipment_car,
+        umpire: p.umpire,
+        transport: p.transport as 'can_transport' | 'cannot_transport' | undefined,
+        comment: p.comment || ''
+      }));
+      setParticipations(convertedParticipations);
+    } catch (error) {
+      console.error('Failed to load participations:', error);
+      // フォールバック: LocalStorageから読み込み
+      const localParticipations = getParticipations();
+      const eventParticipations = localParticipations.filter(p => p.eventId === event.id);
+      setParticipations(eventParticipations);
+    }
+  };
 
   const eventParticipations = participations.filter(p => p.eventId === event.id);
 
@@ -397,7 +485,36 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
         updateParticipation(players[0].id, { comment });
       }
       
-      saveParticipations(participations);
+      // Supabaseに保存
+      for (const participation of eventParticipations) {
+        const participationData = {
+          event_id: participation.eventId,
+          player_id: participation.playerId,
+          status: participation.status,
+          parent_participation: participation.parentParticipation,
+          car_capacity: participation.carCapacity,
+          equipment_car: participation.equipmentCar,
+          umpire: participation.umpire,
+          transport: participation.transport,
+          comment: participation.comment
+        };
+
+        const existingParticipation = await participationService.getParticipationsByEventAndPlayer(
+          participation.eventId, 
+          participation.playerId
+        );
+
+        if (existingParticipation.length > 0) {
+          await participationService.updateParticipation(existingParticipation[0].id, participationData);
+        } else {
+          await participationService.createParticipation(participationData);
+        }
+      }
+      
+      // フォールバック: LocalStorageにも保存
+      const allParticipations = getParticipations();
+      const updatedParticipations = allParticipations.filter(p => p.eventId !== event.id);
+      saveParticipations([...updatedParticipations, ...participations]);
       onSave();
       return true;
     }, '参加状況の保存に失敗しました');

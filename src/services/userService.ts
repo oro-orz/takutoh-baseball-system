@@ -2,9 +2,11 @@ import { supabase } from '../lib/supabase'
 
 export interface User {
   id: string
-  email: string
+  pin: string
   name: string
+  line_id?: string
   role: 'admin' | 'coach' | 'player' | 'parent'
+  players: any[] // 選手情報の配列
   created_at: string
   updated_at: string
 }
@@ -23,6 +25,26 @@ export const userService = {
     }
 
     return data || []
+  },
+
+  // PINでユーザーを取得
+  async getUserByPin(pin: string): Promise<User | null> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('pin', pin)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // データが見つからない場合
+        return null
+      }
+      console.error('Error fetching user by pin:', error)
+      throw error
+    }
+
+    return data
   },
 
   // ユーザーを作成
@@ -69,25 +91,5 @@ export const userService = {
       console.error('Error deleting user:', error)
       throw error
     }
-  },
-
-  // メールアドレスでユーザーを取得
-  async getUserByEmail(email: string): Promise<User | null> {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single()
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // データが見つからない場合
-        return null
-      }
-      console.error('Error fetching user by email:', error)
-      throw error
-    }
-
-    return data
   }
 }

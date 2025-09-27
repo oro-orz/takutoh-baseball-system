@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Event, EventType, ParticipantGroup, ClothingType, LunchType } from '../types';
 import { getEvents, saveEvents } from '../utils/storage';
+import { uploadFile, deleteFile } from '../utils/fileUpload';
 import { eventService } from '../services/eventService';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
 import { Calendar, Plus, Edit, Trash2, Save, X, Upload, FileText } from 'lucide-react';
@@ -228,26 +229,37 @@ const EventManagementPage: React.FC = () => {
 
 
   // ファイルアップロード処理
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    const newFiles = Array.from(files).map(file => ({
-      id: `file_${Date.now()}_${Math.random()}`,
-      name: file.name,
-      url: URL.createObjectURL(file),
-      type: 'overview' as const
-    }));
-
-    setFormData({
-      ...formData,
-      files: [...(formData.files || []), ...newFiles]
-    });
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        return await uploadFile(file, editingEvent?.id);
+      });
+      
+      const uploadedFiles = await Promise.all(uploadPromises);
+      
+      setFormData({
+        ...formData,
+        files: [...(formData.files || []), ...uploadedFiles]
+      });
+    } catch (error) {
+      console.error('Failed to upload files:', error);
+    }
   };
 
-  const removeFile = (fileId: string) => {
-    const newFiles = (formData.files || []).filter(file => file.id !== fileId);
-    setFormData({ ...formData, files: newFiles });
+  const removeFile = async (fileId: string) => {
+    try {
+      await deleteFile(fileId);
+      const newFiles = (formData.files || []).filter(file => file.id !== fileId);
+      setFormData({ ...formData, files: newFiles });
+    } catch (error) {
+      console.error('Failed to delete file:', error);
+      // フォールバック: ローカル状態から削除
+      const newFiles = (formData.files || []).filter(file => file.id !== fileId);
+      setFormData({ ...formData, files: newFiles });
+    }
   };
 
   // 参加部員の選択肢

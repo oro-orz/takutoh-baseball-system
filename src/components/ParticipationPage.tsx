@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Event, Participation } from '../types';
 import { getEvents, getParticipations } from '../utils/storage';
 import { eventService } from '../services/eventService';
+import { participationService } from '../services/participationService';
 import { Users, CheckCircle, Clock, Eye } from 'lucide-react';
 import EventDetailModal from './EventDetailModal';
 import ParticipationForm from './ParticipationForm';
@@ -17,8 +18,7 @@ const ParticipationPage: React.FC = () => {
 
   useEffect(() => {
     loadEvents();
-    const loadedParticipations = getParticipations();
-    setParticipations(loadedParticipations);
+    loadParticipations();
   }, []);
 
   const loadEvents = async () => {
@@ -30,6 +30,30 @@ const ParticipationPage: React.FC = () => {
       // フォールバック: LocalStorageから読み込み
       const loadedEvents = getEvents();
       setEvents(loadedEvents);
+    }
+  };
+
+  const loadParticipations = async () => {
+    try {
+      const loadedParticipations = await participationService.getParticipations();
+      // Supabaseのデータをアプリケーションの型に変換
+      const convertedParticipations: Participation[] = loadedParticipations.map(p => ({
+        eventId: p.event_id,
+        playerId: p.player_id,
+        status: p.status as 'attending' | 'not_attending' | 'undecided',
+        parentParticipation: p.parent_participation as 'attending' | 'not_attending' | 'undecided',
+        carCapacity: p.car_capacity || 0,
+        equipmentCar: p.equipment_car,
+        umpire: p.umpire,
+        transport: p.transport as 'can_transport' | 'cannot_transport' | undefined,
+        comment: p.comment || ''
+      }));
+      setParticipations(convertedParticipations);
+    } catch (error) {
+      console.error('Failed to load participations:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedParticipations = getParticipations();
+      setParticipations(loadedParticipations);
     }
   };
 
@@ -101,8 +125,7 @@ const ParticipationPage: React.FC = () => {
 
   const handleParticipationSave = () => {
     // 参加状況を再読み込み
-    const loadedParticipations = getParticipations();
-    setParticipations(loadedParticipations);
+    loadParticipations();
   };
 
   const formatDate = (dateString: string): string => {

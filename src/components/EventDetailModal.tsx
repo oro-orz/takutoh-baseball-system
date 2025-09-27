@@ -192,7 +192,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
           {event.preparation && (
             <div>
               <h3 className="text-md font-semibold text-gray-900 mb-3">準備物</h3>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                 <p className="text-sm text-gray-700 whitespace-pre-line">{event.preparation}</p>
               </div>
             </div>
@@ -234,7 +234,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
           {event.reference && (
             <div>
               <h3 className="text-md font-semibold text-gray-900 mb-3">参考事項</h3>
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                 <p className="text-sm text-gray-700 whitespace-pre-line">{event.reference}</p>
               </div>
             </div>

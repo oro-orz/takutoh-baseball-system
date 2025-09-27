@@ -3,13 +3,34 @@ import { supabase } from '../lib/supabase'
 export interface Participation {
   id: string
   event_id: string
-  participant_id: string
-  status: 'attending' | 'not_attending' | 'maybe'
+  player_id: string
+  status: 'attending' | 'not_attending' | 'undecided'
+  parent_participation: 'attending' | 'not_attending' | 'undecided' | string
+  car_capacity?: number
+  equipment_car: boolean
+  umpire: boolean
+  transport?: 'can_transport' | 'cannot_transport'
+  comment?: string
   created_at: string
   updated_at: string
 }
 
 export const participationService = {
+  // 全参加状況を取得
+  async getParticipations(): Promise<Participation[]> {
+    const { data, error } = await supabase
+      .from('participations')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching participations:', error)
+      throw error
+    }
+
+    return data || []
+  },
+
   // イベントの参加状況を取得
   async getParticipationsByEvent(eventId: string): Promise<Participation[]> {
     const { data, error } = await supabase
@@ -25,12 +46,13 @@ export const participationService = {
     return data || []
   },
 
-  // 参加者の参加状況を取得
-  async getParticipationsByParticipant(participantId: string): Promise<Participation[]> {
+  // イベントと選手の参加状況を取得
+  async getParticipationsByEventAndPlayer(eventId: string, playerId: string): Promise<Participation[]> {
     const { data, error } = await supabase
       .from('participations')
       .select('*')
-      .eq('participant_id', participantId)
+      .eq('event_id', eventId)
+      .eq('player_id', playerId)
 
     if (error) {
       console.error('Error fetching participations:', error)
@@ -40,16 +62,33 @@ export const participationService = {
     return data || []
   },
 
-  // 参加状況を作成または更新
-  async upsertParticipation(participation: Omit<Participation, 'id' | 'created_at' | 'updated_at'>): Promise<Participation> {
+  // 参加状況を作成
+  async createParticipation(participation: Omit<Participation, 'id' | 'created_at' | 'updated_at'>): Promise<Participation> {
     const { data, error } = await supabase
       .from('participations')
-      .upsert([participation], { onConflict: 'event_id,participant_id' })
+      .insert([participation])
       .select()
       .single()
 
     if (error) {
-      console.error('Error upserting participation:', error)
+      console.error('Error creating participation:', error)
+      throw error
+    }
+
+    return data
+  },
+
+  // 参加状況を更新
+  async updateParticipation(id: string, participation: Partial<Participation>): Promise<Participation> {
+    const { data, error } = await supabase
+      .from('participations')
+      .update(participation)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating participation:', error)
       throw error
     }
 

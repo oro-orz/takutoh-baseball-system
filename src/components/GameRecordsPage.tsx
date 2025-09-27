@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Event, GameRecord } from '../types';
 import { getEvents, getGameRecords, saveGameRecords } from '../utils/storage';
-import { getStoredFiles, deleteFile, UploadedFile } from '../utils/fileUpload';
+import { getFiles, deleteFile, UploadedFile } from '../utils/fileUpload';
 import { eventService } from '../services/eventService';
+import { gameRecordService } from '../services/gameRecordService';
 // import { FileUploadArea, FileList } from './FileUpload';
 import { Trophy, Upload, Eye, Edit, Save, X, FileText, ChevronDown, Paperclip, Check, Minus, Clock } from 'lucide-react';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
@@ -27,12 +28,19 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
 
   useEffect(() => {
     loadEvents();
-    const loadedRecords = getGameRecords();
-    const loadedFiles = getStoredFiles();
-    
-    setGameRecords(loadedRecords);
-    setUploadedFiles(loadedFiles);
+    loadGameRecords();
+    loadFiles();
   }, []);
+
+  const loadFiles = async () => {
+    try {
+      const loadedFiles = await getFiles();
+      setUploadedFiles(loadedFiles);
+    } catch (error) {
+      console.error('Failed to load files:', error);
+      setUploadedFiles([]);
+    }
+  };
 
   const loadEvents = async () => {
     try {
@@ -79,6 +87,28 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
     }
   };
 
+  const loadGameRecords = async () => {
+    try {
+      const loadedRecords = await gameRecordService.getGameRecords();
+      // Supabaseのデータをアプリケーションの型に変換
+      const convertedRecords: GameRecord[] = loadedRecords.map(r => ({
+        id: r.id,
+        eventId: r.event_id,
+        result: r.our_score > r.opponent_score ? 'win' : r.our_score < r.opponent_score ? 'lose' : 'draw',
+        score: { our: r.our_score, opponent: r.opponent_score },
+        opponent: r.opponent || '',
+        details: r.details || '',
+        files: [] // ファイルは別途管理
+      }));
+      setGameRecords(convertedRecords);
+    } catch (error) {
+      console.error('Failed to load game records:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedRecords = getGameRecords();
+      setGameRecords(loadedRecords);
+    }
+  };
+
   // 試合記録対象のイベントをフィルタリング（練習以外）
   const gameEvents = events.filter(event => event.type !== 'practice');
   
@@ -108,20 +138,29 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
     const result = await handleAsyncError(async () => {
       const existingRecordIndex = gameRecords.findIndex(r => r.eventId === selectedEventId);
 
-      const recordToSave: GameRecord = {
-        eventId: selectedEventId,
-        result: currentRecord.result || 'win',
-        score: currentRecord.score || { our: 0, opponent: 0 },
-        files: currentRecord.files || [],
-        opponent: currentRecord.opponent || ''
+      const recordToSave = {
+        event_id: selectedEventId,
+        opponent: currentRecord.opponent || '',
+        our_score: currentRecord.score?.our || 0,
+        opponent_score: currentRecord.score?.opponent || 0,
+        details: `結果: ${currentRecord.result || 'win'}`
       };
 
+      let savedRecord;
+      if (existingRecordIndex >= 0) {
+        const existingRecord = gameRecords[existingRecordIndex];
+        savedRecord = await gameRecordService.updateGameRecord(existingRecord.id, recordToSave);
+      } else {
+        savedRecord = await gameRecordService.createGameRecord(recordToSave);
+      }
+
+      // ローカル状態を更新
       let updatedRecords;
       if (existingRecordIndex >= 0) {
         updatedRecords = [...gameRecords];
-        updatedRecords[existingRecordIndex] = recordToSave;
+        updatedRecords[existingRecordIndex] = savedRecord;
       } else {
-        updatedRecords = [...gameRecords, recordToSave];
+        updatedRecords = [...gameRecords, savedRecord];
       }
 
       setGameRecords(updatedRecords);

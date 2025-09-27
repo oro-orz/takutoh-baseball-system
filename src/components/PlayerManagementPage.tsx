@@ -1,15 +1,160 @@
 import React, { useState, useEffect } from 'react';
 import { User, Player } from '../types';
 import { getUsers, saveUsers } from '../utils/storage';
-import { UserPlus, Edit, Trash2, Users } from 'lucide-react';
+import { userService } from '../services/userService';
+import { UserPlus, Edit, Trash2, Users, Plus, X } from 'lucide-react';
 import { showSuccess, showError, handleAsyncError } from '../utils/errorHandler';
 
-// 選手フォームコンポーネント
-interface PlayerFormProps {
-  player?: Player;
-  onSubmit: (player: Omit<Player, 'id'>) => void;
+// 新入部員（保護者）フォームコンポーネント
+interface NewUserFormProps {
+  onSubmit: (user: Omit<User, 'id'>) => void;
   onCancel: () => void;
+  existingPins: string[];
 }
+
+const NewUserForm: React.FC<NewUserFormProps> = ({ onSubmit, onCancel, existingPins }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    pin: '',
+    lineId: ''
+  });
+
+  // PIN自動生成（1001-9998の範囲で重複チェック）
+  const generatePin = () => {
+    let pin;
+    let attempts = 0;
+    do {
+      pin = Math.floor(Math.random() * 8998) + 1001; // 1001-9998
+      attempts++;
+      if (attempts > 100) {
+        // 100回試行しても重複しない場合は手動入力に誘導
+        return '';
+      }
+    } while (existingPins.includes(pin.toString()));
+    return pin.toString();
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      showError('保護者名を入力してください');
+      return;
+    }
+    
+    if (!formData.pin.trim()) {
+      showError('PINコードを入力してください');
+      return;
+    }
+
+    if (formData.pin.length !== 4) {
+      showError('PINコードは4桁で入力してください');
+      return;
+    }
+
+    const newUser: Omit<User, 'id'> = {
+      name: formData.name.trim(),
+      pin: formData.pin.trim(),
+      lineId: formData.lineId.trim(),
+      players: []
+    };
+
+    onSubmit(newUser);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-gray-900">新入部員追加</h3>
+            <button
+              onClick={onCancel}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                保護者名 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="input-field"
+                placeholder="例：田中太郎"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                PINコード <span className="text-red-500">*</span>
+              </label>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={formData.pin}
+                  onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
+                  className="input-field flex-1 text-center text-lg tracking-widest"
+                  placeholder="0000"
+                  maxLength={4}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, pin: generatePin() })}
+                  className="btn-secondary px-3"
+                >
+                  自動生成
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                4桁の数字で入力してください（1001-9998）
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                LINE ID
+              </label>
+              <input
+                type="text"
+                value={formData.lineId}
+                onChange={(e) => setFormData({ ...formData, lineId: e.target.value })}
+                className="input-field"
+                placeholder="例：tanaka_taro"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                LINEでの連絡に使用します（任意）
+              </p>
+            </div>
+
+            <div className="flex space-x-3 pt-4">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="btn-secondary flex-1"
+              >
+                キャンセル
+              </button>
+              <button
+                type="submit"
+                className="btn-primary flex-1"
+              >
+                追加
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const PlayerForm: React.FC<PlayerFormProps> = ({ player, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -114,17 +259,81 @@ const PlayerManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const [showAddUser, setShowAddUser] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
 
   useEffect(() => {
-    const loadedUsers = getUsers();
-    setUsers(loadedUsers);
-    if (loadedUsers.length > 0) {
-      setSelectedUserId(loadedUsers[0].id);
-    }
+    loadUsers();
   }, []);
 
+  const loadUsers = async () => {
+    try {
+      const loadedUsers = await userService.getUsers();
+      // Supabaseのデータをアプリケーションの型に変換
+      const convertedUsers: User[] = loadedUsers.map(u => ({
+        id: u.id,
+        pin: u.pin,
+        name: u.name,
+        role: u.role as 'admin' | 'coach' | 'player' | 'parent',
+        players: u.players || []
+      }));
+      setUsers(convertedUsers);
+      if (convertedUsers.length > 0) {
+        setSelectedUserId(convertedUsers[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to load users:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedUsers = getUsers();
+      setUsers(loadedUsers);
+      if (loadedUsers.length > 0) {
+        setSelectedUserId(loadedUsers[0].id);
+      }
+    }
+  };
+
   const selectedUser = users.find(u => u.id === selectedUserId);
+
+  const handleAddUser = async (newUser: Omit<User, 'id'>) => {
+    const result = await handleAsyncError(async () => {
+      // PIN重複チェック
+      const existingPin = users.find(u => u.pin === newUser.pin);
+      if (existingPin) {
+        showError('このPINコードは既に使用されています');
+        return false;
+      }
+
+      const user: User = {
+        ...newUser,
+        id: `user-${Date.now()}`
+      };
+      
+      try {
+        await userService.createUser(user);
+        
+        const updatedUsers = [...users, user];
+        setUsers(updatedUsers);
+        saveUsers(updatedUsers);
+        
+        // 新しく追加したユーザーを選択
+        setSelectedUserId(user.id);
+        return true;
+      } catch (error) {
+        console.error('Failed to add user:', error);
+        // フォールバック: LocalStorageに保存
+        const updatedUsers = [...users, user];
+        setUsers(updatedUsers);
+        saveUsers(updatedUsers);
+        setSelectedUserId(user.id);
+        return true;
+      }
+    }, '新入部員の追加に失敗しました');
+
+    if (result) {
+      showSuccess('新入部員を追加しました');
+      setShowAddUser(false);
+    }
+  };
 
   const handleAddPlayer = async (newPlayer: Omit<Player, 'id'>) => {
     if (!selectedUser) return;
@@ -138,12 +347,26 @@ const PlayerManagementPage: React.FC = () => {
         ...selectedUser,
         players: [...selectedUser.players, player]
       };
-      const updatedUsers = users.map(u =>
-        u.id === selectedUser.id ? updatedUser : u
-      );
-      setUsers(updatedUsers);
-      saveUsers(updatedUsers);
-      return true;
+      
+      try {
+        await userService.updateUser(selectedUser.id, updatedUser);
+        
+        const updatedUsers = users.map(u =>
+          u.id === selectedUser.id ? updatedUser : u
+        );
+        setUsers(updatedUsers);
+        saveUsers(updatedUsers);
+        return true;
+      } catch (error) {
+        console.error('Failed to add player:', error);
+        // フォールバック: LocalStorageに保存
+        const updatedUsers = users.map(u =>
+          u.id === selectedUser.id ? updatedUser : u
+        );
+        setUsers(updatedUsers);
+        saveUsers(updatedUsers);
+        return true;
+      }
     }, '選手の追加に失敗しました');
 
     if (result) {
@@ -162,12 +385,26 @@ const PlayerManagementPage: React.FC = () => {
           p.id === playerId ? { ...p, ...updates } : p
         )
       };
-      const updatedUsers = users.map(u =>
-        u.id === selectedUser.id ? updatedUser : u
-      );
-      setUsers(updatedUsers);
-      saveUsers(updatedUsers);
-      return true;
+      
+      try {
+        await userService.updateUser(selectedUser.id, updatedUser);
+        
+        const updatedUsers = users.map(u =>
+          u.id === selectedUser.id ? updatedUser : u
+        );
+        setUsers(updatedUsers);
+        saveUsers(updatedUsers);
+        return true;
+      } catch (error) {
+        console.error('Failed to edit player:', error);
+        // フォールバック: LocalStorageに保存
+        const updatedUsers = users.map(u =>
+          u.id === selectedUser.id ? updatedUser : u
+        );
+        setUsers(updatedUsers);
+        saveUsers(updatedUsers);
+        return true;
+      }
     }, '選手の更新に失敗しました');
 
     if (result) {
@@ -185,12 +422,26 @@ const PlayerManagementPage: React.FC = () => {
           ...selectedUser,
           players: selectedUser.players.filter(p => p.id !== playerId)
         };
-        const updatedUsers = users.map(u =>
-          u.id === selectedUser.id ? updatedUser : u
-        );
-        setUsers(updatedUsers);
-        saveUsers(updatedUsers);
-        return true;
+        
+        try {
+          await userService.updateUser(selectedUser.id, updatedUser);
+          
+          const updatedUsers = users.map(u =>
+            u.id === selectedUser.id ? updatedUser : u
+          );
+          setUsers(updatedUsers);
+          saveUsers(updatedUsers);
+          return true;
+        } catch (error) {
+          console.error('Failed to delete player:', error);
+          // フォールバック: LocalStorageに保存
+          const updatedUsers = users.map(u =>
+            u.id === selectedUser.id ? updatedUser : u
+          );
+          setUsers(updatedUsers);
+          saveUsers(updatedUsers);
+          return true;
+        }
       }, '選手の削除に失敗しました');
 
       if (result) {
@@ -204,11 +455,11 @@ const PlayerManagementPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <h3 className="text-md font-semibold text-gray-900">選手管理</h3>
         <button
-          onClick={() => setShowAddPlayer(true)}
+          onClick={() => setShowAddUser(true)}
           className="btn-primary flex items-center space-x-2"
         >
-          <UserPlus className="w-4 h-4" />
-          <span>選手追加</span>
+          <Plus className="w-4 h-4" />
+          <span>新入部員追加</span>
         </button>
       </div>
 
@@ -240,11 +491,20 @@ const PlayerManagementPage: React.FC = () => {
 
       {selectedUser && (
         <div className="card">
-          <div className="flex items-center space-x-2 mb-4">
-            <Users className="w-4 h-4 text-primary-600" />
-            <h4 className="text-sm font-semibold text-gray-900">
-              {selectedUser.name}さんの選手一覧
-            </h4>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <Users className="w-4 h-4 text-primary-600" />
+              <h4 className="text-sm font-semibold text-gray-900">
+                {selectedUser.name}さんの選手一覧
+              </h4>
+            </div>
+            <button
+              onClick={() => setShowAddPlayer(true)}
+              className="btn-secondary flex items-center space-x-1"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>選手追加</span>
+            </button>
           </div>
 
           <div className="space-y-3">
@@ -288,6 +548,15 @@ const PlayerManagementPage: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* 新入部員追加モーダル */}
+      {showAddUser && (
+        <NewUserForm
+          onSubmit={handleAddUser}
+          onCancel={() => setShowAddUser(false)}
+          existingPins={users.map(u => u.pin)}
+        />
       )}
 
       {/* 選手追加モーダル */}

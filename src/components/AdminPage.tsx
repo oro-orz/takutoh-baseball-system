@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Event, GameRecord } from '../types';
 import { getEvents, getGameRecords, saveGameRecords } from '../utils/storage';
+import { eventService } from '../services/eventService';
+import { gameRecordService } from '../services/gameRecordService';
 import { Trophy } from 'lucide-react';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
 
@@ -25,29 +27,71 @@ const RecordsTab: React.FC = () => {
   });
 
   useEffect(() => {
-    const loadedEvents = getEvents();
-    const loadedRecords = getGameRecords();
-    setEvents(loadedEvents);
-    setGameRecords(loadedRecords);
+    loadEvents();
+    loadGameRecords();
   }, []);
+
+  const loadEvents = async () => {
+    try {
+      const loadedEvents = await eventService.getEvents();
+      setEvents(loadedEvents);
+    } catch (error) {
+      console.error('Failed to load events:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedEvents = getEvents();
+      setEvents(loadedEvents);
+    }
+  };
+
+  const loadGameRecords = async () => {
+    try {
+      const loadedRecords = await gameRecordService.getGameRecords();
+      // Supabaseのデータをアプリケーションの型に変換
+      const convertedRecords: GameRecord[] = loadedRecords.map(r => ({
+        id: r.id,
+        eventId: r.event_id,
+        result: r.our_score > r.opponent_score ? 'win' : r.our_score < r.opponent_score ? 'lose' : 'draw',
+        score: { our: r.our_score, opponent: r.opponent_score },
+        opponent: r.opponent || '',
+        details: r.details || '',
+        files: [] // ファイルは別途管理
+      }));
+      setGameRecords(convertedRecords);
+    } catch (error) {
+      console.error('Failed to load game records:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedRecords = getGameRecords();
+      setGameRecords(loadedRecords);
+    }
+  };
 
   const handleSaveRecord = async (eventId: string) => {
     const result = await handleAsyncError(async () => {
       const existingRecordIndex = gameRecords.findIndex(r => r.eventId === eventId);
     
-    const recordToSave: GameRecord = {
-        eventId: eventId,
-      result: currentRecord.result || 'win',
-      score: currentRecord.score || { our: 0, opponent: 0 },
-        files: []
+      const recordToSave = {
+        event_id: eventId,
+        opponent: '対戦相手',
+        our_score: currentRecord.score?.our || 0,
+        opponent_score: currentRecord.score?.opponent || 0,
+        details: `結果: ${currentRecord.result || 'win'}`
       };
 
-      let updatedRecords;
-    if (existingRecordIndex >= 0) {
-        updatedRecords = [...gameRecords];
-      updatedRecords[existingRecordIndex] = recordToSave;
+      let savedRecord;
+      if (existingRecordIndex >= 0) {
+        const existingRecord = gameRecords[existingRecordIndex];
+        savedRecord = await gameRecordService.updateGameRecord(existingRecord.id, recordToSave);
       } else {
-        updatedRecords = [...gameRecords, recordToSave];
+        savedRecord = await gameRecordService.createGameRecord(recordToSave);
+      }
+
+      // ローカル状態を更新
+      let updatedRecords;
+      if (existingRecordIndex >= 0) {
+        updatedRecords = [...gameRecords];
+        updatedRecords[existingRecordIndex] = savedRecord;
+      } else {
+        updatedRecords = [...gameRecords, savedRecord];
       }
 
       setGameRecords(updatedRecords);

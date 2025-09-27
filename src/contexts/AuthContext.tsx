@@ -3,6 +3,7 @@ import { AuthState } from '../types';
 import { getAuthData, saveAuthData, clearAuthData } from '../utils/storage';
 import { SAMPLE_USERS, SAMPLE_ADMIN } from '../data/sampleData';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
+import { userService } from '../services/userService';
 
 interface AuthContextType {
   authState: AuthState;
@@ -48,7 +49,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('PINは4桁の数字で入力してください');
       }
 
-      // 管理者チェック
+      // Supabaseからユーザーを取得
+      const user = await userService.getUserByPin(pin);
+      
+      if (user) {
+        const newAuthState: AuthState = {
+          user: {
+            id: user.id,
+            pin: user.pin,
+            name: user.name,
+            role: user.role,
+            players: user.players || []
+          },
+          isAuthenticated: true,
+          isAdmin: user.role === 'admin',
+        };
+        setAuthState(newAuthState);
+        saveAuthData(newAuthState);
+        showSuccess(`${user.name}さんとしてログインしました`);
+        return true;
+      }
+
+      // フォールバック: サンプルデータでチェック
       if (pin === SAMPLE_ADMIN.pin) {
         const newAuthState: AuthState = {
           user: SAMPLE_ADMIN,
@@ -61,17 +83,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return true;
       }
 
-      // 一般ユーザーチェック
-      const user = SAMPLE_USERS.find(u => u.pin === pin);
-      if (user) {
+      const sampleUser = SAMPLE_USERS.find(u => u.pin === pin);
+      if (sampleUser) {
         const newAuthState: AuthState = {
-          user,
+          user: sampleUser,
           isAuthenticated: true,
           isAdmin: false,
         };
         setAuthState(newAuthState);
         saveAuthData(newAuthState);
-        showSuccess(`${user.name}さんとしてログインしました`);
+        showSuccess(`${sampleUser.name}さんとしてログインしました`);
         return true;
       }
 

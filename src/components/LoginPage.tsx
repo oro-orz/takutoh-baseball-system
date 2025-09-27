@@ -69,9 +69,7 @@ const LoginPage: React.FC = () => {
         </form>
 
         <div className="mt-8 text-center text-sm text-gray-500">
-          <p className="mb-2">サンプルPIN:</p>
-          <p>保護者: 1001-1010</p>
-          <p>管理者: 9999</p>
+          <p>PINコードをお忘れの場合は管理者にお問い合わせください</p>
         </div>
       </div>
     </div>
