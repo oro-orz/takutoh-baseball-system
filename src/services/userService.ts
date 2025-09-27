@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { supabase } from './supabase'
 import { User, Player } from '../types'
 
 export interface SupabaseUser {

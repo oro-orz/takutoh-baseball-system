@@ -38,6 +38,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
     try {
       // Supabaseからファイルを読み込み
       const loadedFiles = await fileService.getFiles();
+      console.log('Supabaseから読み込んだファイル:', loadedFiles);
       // SupabaseのファイルデータをUploadedFile形式に変換
       const convertedFiles: UploadedFile[] = loadedFiles.map(f => ({
         id: f.id,
@@ -47,6 +48,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
         url: f.url,
         uploadedAt: f.created_at || new Date().toISOString()
       }));
+      console.log('変換後のファイル:', convertedFiles);
       setUploadedFiles(convertedFiles);
     } catch (error) {
       console.error('ファイル読み込みに失敗しました:', error);
@@ -244,17 +246,25 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
 
   const handleFilesUploaded = async (files: UploadedFile[]) => {
     try {
+      console.log('ファイルアップロード開始:', files);
+      
       // 各ファイルをSupabaseストレージにアップロードしてからデータベースに保存
       const savedFiles: UploadedFile[] = [];
       for (const file of files) {
+        console.log('ファイル処理中:', file.name);
+        
         // ファイルをSupabaseストレージにアップロード
         const fileExt = file.name.split('.').pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `game-records/${fileName}`;
         
+        console.log('アップロードパス:', filePath);
+        
         // File オブジェクトを取得（URL.createObjectURLから）
         const response = await fetch(file.url);
         const blob = await response.blob();
+        
+        console.log('Blob作成完了:', blob.size, 'bytes');
         
         const { error: uploadError } = await supabase.storage
           .from('files')
@@ -265,10 +275,14 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
           continue;
         }
         
+        console.log('ストレージアップロード成功');
+        
         // 公開URLを取得
         const { data: urlData } = supabase.storage
           .from('files')
           .getPublicUrl(filePath);
+        
+        console.log('公開URL取得:', urlData.publicUrl);
         
         // データベースにファイル情報を保存
         const savedFile = await fileService.createFile({
@@ -278,6 +292,8 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
           url: urlData.publicUrl,
           uploaded_by: 'admin' // 管理者がアップロード
         });
+        
+        console.log('データベース保存成功:', savedFile);
         
         savedFiles.push({
           id: savedFile.id,
@@ -289,6 +305,8 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
         });
       }
       
+      console.log('保存されたファイル:', savedFiles);
+      
       // ローカル状態を更新
       setUploadedFiles(prev => [...prev, ...savedFiles]);
       
@@ -299,6 +317,8 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
           files: [...(prev.files || []), ...savedFiles.map(f => f.id)]
         }));
       }
+      
+      console.log('ファイルアップロード完了');
     } catch (error) {
       console.error('ファイル保存に失敗しました:', error);
     }
@@ -414,6 +434,15 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
               allFiles.includes(f.id)
             );
             const isSelected = selectedEventId === event.id;
+
+            // デバッグ用ログ
+            console.log('イベント:', event.title);
+            console.log('record:', record);
+            console.log('currentRecordFiles:', currentRecordFiles);
+            console.log('recordFiles:', recordFiles);
+            console.log('allFiles:', allFiles);
+            console.log('uploadedFiles:', uploadedFiles);
+            console.log('eventFiles:', eventFiles);
 
             return (
               <div key={event.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
@@ -640,11 +669,16 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
                                 <div className="flex items-center space-x-2">
                                   <button
                                     onClick={() => {
+                                      console.log('ファイル閲覧ボタンクリック:', file);
+                                      console.log('ファイルURL:', file.url);
+                                      
                                       const modal = document.createElement('div');
                                       modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-60';
                                       
                                       const isPdf = file.name.toLowerCase().endsWith('.pdf');
                                       const isImage = /\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(file.name);
+                                      
+                                      console.log('ファイルタイプ判定:', { isPdf, isImage, fileName: file.name });
                                       
                                       let content = '';
                                       if (isPdf) {
