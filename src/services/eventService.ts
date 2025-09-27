@@ -44,30 +44,36 @@ export const eventService = {
 
   // イベントを作成
   async createEvent(event: Omit<Event, 'id'>): Promise<Event> {
+    // 空の文字列をnullに変換するヘルパー関数
+    const nullIfEmpty = (value: any) => {
+      if (value === '' || value === undefined) return null;
+      return value;
+    };
+
     // camelCase を snake_case に変換
     const dbEvent = {
       title: event.title,
       type: event.type,
       date: event.date,
-      start_time: event.startTime,
-      end_time: event.endTime,
-      location: event.location,
-      opponent: event.opponent,
-      description: event.description,
-      items: event.items,
-      parking: event.parking,
-      files: event.files,
-      event_name: event.eventName,
-      participants: event.participants,
-      meeting_time: event.meetingTime,
-      schedule: event.schedule,
-      clothing: event.clothing,
-      preparation: event.preparation,
-      lunch: event.lunch,
-      tea_garbage_duty: event.teaGarbageDuty,
-      equipment_bench_support: event.equipmentBenchSupport,
-      reference: event.reference,
-      cancellation_reason: event.cancellationReason
+      start_time: nullIfEmpty(event.startTime),
+      end_time: nullIfEmpty(event.endTime),
+      location: nullIfEmpty(event.location),
+      opponent: nullIfEmpty(event.opponent),
+      description: nullIfEmpty(event.description),
+      items: event.items || [],
+      parking: nullIfEmpty(event.parking),
+      files: event.files || [],
+      event_name: nullIfEmpty(event.eventName),
+      participants: event.participants || [],
+      meeting_time: nullIfEmpty(event.meetingTime),
+      schedule: nullIfEmpty(event.schedule),
+      clothing: event.clothing || [],
+      preparation: nullIfEmpty(event.preparation),
+      lunch: nullIfEmpty(event.lunch),
+      tea_garbage_duty: nullIfEmpty(event.teaGarbageDuty),
+      equipment_bench_support: nullIfEmpty(event.equipmentBenchSupport),
+      reference: nullIfEmpty(event.reference),
+      cancellation_reason: nullIfEmpty(event.cancellationReason)
     }
 
     const { data, error } = await supabase
@@ -112,9 +118,40 @@ export const eventService = {
 
   // イベントを更新
   async updateEvent(id: string, event: Partial<Event>): Promise<Event> {
+    // 空の文字列をnullに変換するヘルパー関数
+    const nullIfEmpty = (value: any) => {
+      if (value === '' || value === undefined) return null;
+      return value;
+    };
+
+    // camelCase を snake_case に変換
+    const dbEvent: any = {};
+    if (event.title !== undefined) dbEvent.title = event.title;
+    if (event.type !== undefined) dbEvent.type = event.type;
+    if (event.date !== undefined) dbEvent.date = event.date;
+    if (event.startTime !== undefined) dbEvent.start_time = nullIfEmpty(event.startTime);
+    if (event.endTime !== undefined) dbEvent.end_time = nullIfEmpty(event.endTime);
+    if (event.location !== undefined) dbEvent.location = nullIfEmpty(event.location);
+    if (event.opponent !== undefined) dbEvent.opponent = nullIfEmpty(event.opponent);
+    if (event.description !== undefined) dbEvent.description = nullIfEmpty(event.description);
+    if (event.items !== undefined) dbEvent.items = event.items;
+    if (event.parking !== undefined) dbEvent.parking = nullIfEmpty(event.parking);
+    if (event.files !== undefined) dbEvent.files = event.files;
+    if (event.eventName !== undefined) dbEvent.event_name = nullIfEmpty(event.eventName);
+    if (event.participants !== undefined) dbEvent.participants = event.participants;
+    if (event.meetingTime !== undefined) dbEvent.meeting_time = nullIfEmpty(event.meetingTime);
+    if (event.schedule !== undefined) dbEvent.schedule = nullIfEmpty(event.schedule);
+    if (event.clothing !== undefined) dbEvent.clothing = event.clothing;
+    if (event.preparation !== undefined) dbEvent.preparation = nullIfEmpty(event.preparation);
+    if (event.lunch !== undefined) dbEvent.lunch = nullIfEmpty(event.lunch);
+    if (event.teaGarbageDuty !== undefined) dbEvent.tea_garbage_duty = nullIfEmpty(event.teaGarbageDuty);
+    if (event.equipmentBenchSupport !== undefined) dbEvent.equipment_bench_support = nullIfEmpty(event.equipmentBenchSupport);
+    if (event.reference !== undefined) dbEvent.reference = nullIfEmpty(event.reference);
+    if (event.cancellationReason !== undefined) dbEvent.cancellation_reason = nullIfEmpty(event.cancellationReason);
+
     const { data, error } = await supabase
       .from('events')
-      .update(event)
+      .update(dbEvent)
       .eq('id', id)
       .select()
       .single()
