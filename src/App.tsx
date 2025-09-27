@@ -1,6 +1,6 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Calendar, Users, User, LogOut, Trophy, Settings } from 'lucide-react';
+import { Calendar, Users, User, LogOut, Trophy, Settings, UserCheck } from 'lucide-react';
 import LoginPage from './components/LoginPage';
 import SchedulePage from './components/SchedulePage';
 import ParticipationPage from './components/ParticipationPage';
@@ -10,6 +10,7 @@ import MyPage from './components/MyPage';
 import GameRecordsPage from './components/GameRecordsPage';
 import PlayerManagementPage from './components/PlayerManagementPage';
 import EventManagementPage from './components/EventManagementPage';
+import PlayerRosterPage from './components/PlayerRosterPage';
 import { initializeSampleData } from './data/sampleData';
 
 const AppContent: React.FC = () => {
@@ -40,6 +41,7 @@ const AppContent: React.FC = () => {
     : [
         { id: 'schedule', label: '予定', icon: Calendar },
         { id: 'participation', label: '参加入力', icon: Users },
+        { id: 'roster', label: '選手名簿', icon: UserCheck },
         { id: 'game-records', label: '試合記録', icon: Trophy },
         { id: 'profile', label: 'マイページ', icon: User },
       ];
@@ -50,6 +52,8 @@ const AppContent: React.FC = () => {
         return <SchedulePage />;
       case 'participation':
         return <ParticipationPage />;
+      case 'roster':
+        return <PlayerRosterPage />;
       case 'progress':
         return isAdmin ? <ParticipationProgressPage /> : <ParticipationProgressPage />;
       case 'admin':

@@ -30,6 +30,28 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
     return lastDotIndex > 0 ? fileName.substring(0, lastDotIndex) : fileName;
   };
 
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.toLowerCase().split('.').pop();
+    switch (extension) {
+      case 'pdf':
+        return <FileText className="w-4 h-4 text-red-500" />;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'webp':
+        return <FileText className="w-4 h-4 text-green-500" />;
+      case 'doc':
+      case 'docx':
+        return <FileText className="w-4 h-4 text-blue-500" />;
+      case 'xls':
+      case 'xlsx':
+        return <FileText className="w-4 h-4 text-green-600" />;
+      default:
+        return <FileText className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
   const handleFileView = (fileUrl: string, fileName: string) => {
     setViewingFile({url: fileUrl, name: fileName});
   };
@@ -285,14 +307,14 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
               <h3 className="text-md font-semibold text-gray-900 mb-3">添付ファイル</h3>
               <div className="space-y-2">
                 {event.files.map((file) => (
-                  <div key={file.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                    <FileText className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-700 flex-1">{file.name}</span>
+                  <div key={file.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
+                    {getFileIcon(file.name)}
+                    <span className="text-sm text-gray-700 flex-1 font-medium">{file.name}</span>
                     <div className="flex items-center space-x-2">
                       {isPdfFile(file.name) && (
                         <button 
                           onClick={() => handleFileView(file.url, file.name)}
-                          className="text-blue-600 hover:text-blue-700 transition-colors"
+                          className="text-blue-600 hover:text-blue-700 transition-colors p-1 rounded hover:bg-blue-50"
                           title="PDFを表示"
                         >
                           <Eye className="w-4 h-4" />
@@ -300,7 +322,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
                       )}
                       <button 
                         onClick={() => handleFileDownload(file.url, file.name)}
-                        className="text-primary-600 hover:text-primary-700 transition-colors"
+                        className="text-primary-600 hover:text-primary-700 transition-colors p-1 rounded hover:bg-primary-50"
                         title="ダウンロード"
                       >
                         <Download className="w-4 h-4" />

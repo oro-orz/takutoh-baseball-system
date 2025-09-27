@@ -4,6 +4,7 @@ import { getEvents, getGameRecords, saveGameRecords } from '../utils/storage';
 import { getFiles, deleteFile, UploadedFile } from '../utils/fileUpload';
 import { eventService } from '../services/eventService';
 import { gameRecordService } from '../services/gameRecordService';
+import { fileService } from '../services/fileService';
 // import { FileUploadArea, FileList } from './FileUpload';
 import { Trophy, Upload, Eye, Edit, Save, X, FileText, ChevronDown, Paperclip, Check, Minus, Clock } from 'lucide-react';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
@@ -34,11 +35,28 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
 
   const loadFiles = async () => {
     try {
-      const loadedFiles = await getFiles();
-      setUploadedFiles(loadedFiles);
+      // Supabaseからファイルを読み込み
+      const loadedFiles = await fileService.getFiles();
+      // SupabaseのファイルデータをUploadedFile形式に変換
+      const convertedFiles: UploadedFile[] = loadedFiles.map(f => ({
+        id: f.id,
+        name: f.name,
+        size: f.size,
+        type: f.type,
+        url: f.url,
+        uploadedAt: f.created_at || new Date().toISOString()
+      }));
+      setUploadedFiles(convertedFiles);
     } catch (error) {
       console.error('Failed to load files:', error);
-      setUploadedFiles([]);
+      // フォールバック: LocalStorageから読み込み
+      try {
+        const localFiles = await getFiles();
+        setUploadedFiles(localFiles);
+      } catch (localError) {
+        console.error('Failed to load files from localStorage:', localError);
+        setUploadedFiles([]);
+      }
     }
   };
 
@@ -91,14 +109,18 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
     try {
       const loadedRecords = await gameRecordService.getGameRecords();
       // Supabaseのデータをアプリケーションの型に変換
-      const convertedRecords: GameRecord[] = loadedRecords.map(r => ({
-        id: r.id,
-        eventId: r.event_id,
-        result: r.our_score > r.opponent_score ? 'win' : r.our_score < r.opponent_score ? 'lose' : 'draw',
-        score: { our: r.our_score, opponent: r.opponent_score },
-        opponent: r.opponent || '',
-        details: r.details || '',
-        files: [] // ファイルは別途管理
+      const convertedRecords: GameRecord[] = await Promise.all(loadedRecords.map(async r => {
+        // 各記録に関連するファイルを取得
+        const files = await fileService.getFilesByGameRecord(r.id);
+        return {
+          id: r.id,
+          eventId: r.event_id,
+          result: r.our_score > r.opponent_score ? 'win' : r.our_score < r.opponent_score ? 'lose' : 'draw',
+          score: { our: r.our_score, opponent: r.opponent_score },
+          opponent: r.opponent || '',
+          details: r.details || '',
+          files: files.map(f => f.id) // ファイルIDの配列
+        };
       }));
       setGameRecords(convertedRecords);
     } catch (error) {
@@ -154,6 +176,23 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
         savedRecord = await gameRecordService.createGameRecord(recordToSave);
       }
 
+      // ファイル情報をSupabaseに保存
+      if (currentRecord.files && currentRecord.files.length > 0) {
+        for (const fileId of currentRecord.files) {
+          const file = uploadedFiles.find(f => f.id === fileId);
+          if (file) {
+            await fileService.createFile({
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              url: file.url,
+              game_record_id: savedRecord.id,
+              uploaded_by: 'admin' // 管理者がアップロード
+            });
+          }
+        }
+      }
+
       // ローカル状態を更新
       let updatedRecords;
       if (existingRecordIndex >= 0) {
@@ -165,7 +204,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
           score: { our: savedRecord.our_score, opponent: savedRecord.opponent_score },
           opponent: savedRecord.opponent || '',
           details: savedRecord.details || '',
-          files: []
+          files: currentRecord.files || []
         };
       } else {
         updatedRecords = [...gameRecords, {
@@ -175,7 +214,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
           score: { our: savedRecord.our_score, opponent: savedRecord.opponent_score },
           opponent: savedRecord.opponent || '',
           details: savedRecord.details || '',
-          files: []
+          files: currentRecord.files || []
         }];
       }
 

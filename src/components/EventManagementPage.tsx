@@ -3,6 +3,7 @@ import { Event, EventType, ParticipantGroup, ClothingType, LunchType } from '../
 import { getEvents, saveEvents } from '../utils/storage';
 import { uploadFile, deleteFile } from '../utils/fileUpload';
 import { eventService } from '../services/eventService';
+import { fileService } from '../services/fileService';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
 import { Calendar, Plus, Edit, Trash2, Save, X, Upload, FileText } from 'lucide-react';
 
@@ -42,7 +43,22 @@ const EventManagementPage: React.FC = () => {
   const loadEvents = async () => {
     try {
       const loadedEvents = await eventService.getEvents();
-      setEvents(loadedEvents);
+      // 各イベントに関連するファイルを取得
+      const eventsWithFiles = await Promise.all(loadedEvents.map(async (event) => {
+        const files = await fileService.getFilesByEvent(event.id);
+        return {
+          ...event,
+          files: files.map(f => ({
+            id: f.id,
+            name: f.name,
+            size: f.size,
+            type: f.type,
+            url: f.url,
+            uploadedAt: f.created_at || new Date().toISOString()
+          }))
+        };
+      }));
+      setEvents(eventsWithFiles);
     } catch (error) {
       console.error('Failed to load events:', error);
       // フォールバック: LocalStorageから読み込み
@@ -165,6 +181,20 @@ const EventManagementPage: React.FC = () => {
         savedEvent = await eventService.updateEvent(editingEvent.id, newEvent);
       } else {
         savedEvent = await eventService.createEvent(newEvent);
+      }
+
+      // ファイル情報をSupabaseに保存
+      if (formData.files && formData.files.length > 0) {
+        for (const file of formData.files) {
+          await fileService.createFile({
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            url: file.url,
+            event_id: savedEvent.id,
+            uploaded_by: 'admin' // 管理者がアップロード
+          });
+        }
       }
 
       // ローカル状態を更新

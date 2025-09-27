@@ -42,8 +42,10 @@ export interface Event {
 export interface EventFile {
   id: string;
   name: string;
+  size: number;
   url: string;
-  type?: string; // ファイルタイプを柔軟に
+  type: string; // ファイルタイプを必須に
+  uploadedAt?: string;
 }
 
 // 選手

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Event, EventType } from '../types';
 import { getEvents } from '../utils/storage';
 import { eventService } from '../services/eventService';
+import { fileService } from '../services/fileService';
 import { Calendar, Clock, MapPin } from 'lucide-react';
 import EventDetailModal from './EventDetailModal';
 
@@ -18,7 +19,22 @@ const SchedulePage: React.FC = () => {
   const loadEvents = async () => {
     try {
       const loadedEvents = await eventService.getEvents();
-      setEvents(loadedEvents);
+      // 各イベントに関連するファイルを取得
+      const eventsWithFiles = await Promise.all(loadedEvents.map(async (event) => {
+        const files = await fileService.getFilesByEvent(event.id);
+        return {
+          ...event,
+          files: files.map(f => ({
+            id: f.id,
+            name: f.name,
+            size: f.size,
+            type: f.type,
+            url: f.url,
+            uploadedAt: f.created_at || new Date().toISOString()
+          }))
+        };
+      }));
+      setEvents(eventsWithFiles);
     } catch (error) {
       console.error('Failed to load events:', error);
       // フォールバック: LocalStorageから読み込み
