@@ -45,8 +45,8 @@ const SupabaseTestPage: React.FC = () => {
         title: 'Supabaseテストイベント',
         type: 'practice' as const,
         date: new Date().toISOString().split('T')[0],
-        startTime: '09:00',
-        endTime: '12:00',
+        start_time: '09:00',
+        end_time: '12:00',
         location: 'テスト会場'
       };
 
