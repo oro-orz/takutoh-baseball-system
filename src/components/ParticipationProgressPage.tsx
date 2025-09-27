@@ -105,7 +105,14 @@ const ParticipationProgressPage: React.FC = () => {
       
       if (participation) {
         // 選手の参加状況
-        switch (participation.status) {
+        let playerStatus = participation.status;
+        
+        // 練習イベントの場合、未定は参加として扱う
+        if (isPracticeEvent && playerStatus === 'undecided') {
+          playerStatus = 'attending';
+        }
+        
+        switch (playerStatus) {
           case 'attending':
             attendingPlayers++;
             break;
@@ -414,7 +421,13 @@ const ParticipationProgressPage: React.FC = () => {
                     <div key={user.id} className="border border-gray-200 rounded-lg p-3">
                       <h4 className="text-sm font-medium text-gray-900 mb-2">{user.name}</h4>
                       <div className="space-y-2">
-                        {sortedPlayers.map(({ player, participation, playerStatus, parentStatus }) => (
+                        {sortedPlayers.map(({ player, participation, playerStatus, parentStatus }) => {
+                          // 練習イベントの場合、未定は参加として表示
+                          const displayPlayerStatus = selectedEvent?.type === 'practice' && playerStatus === 'undecided' 
+                            ? 'attending' 
+                            : playerStatus;
+                          
+                          return (
                             <div key={player.id} className="space-y-1">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs font-medium text-gray-700">
@@ -424,9 +437,9 @@ const ParticipationProgressPage: React.FC = () => {
                               
                               <div className="space-y-1">
                                 <div className="flex items-center space-x-2">
-                                  {getStatusIcon(playerStatus)}
+                                  {getStatusIcon(displayPlayerStatus)}
                                   <span className="text-xs text-gray-600">
-                                    選手: {getStatusText(playerStatus)}
+                                    選手: {getStatusText(displayPlayerStatus)}
                                   </span>
                                 </div>
                                 {selectedEvent?.type !== 'practice' && (

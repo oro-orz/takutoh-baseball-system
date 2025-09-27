@@ -480,6 +480,14 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
     setIsSubmitting(true);
     
     const result = await handleAsyncError(async () => {
+      // 練習イベントの場合、参加状況が未入力の選手は「参加」として扱う
+      const updatedParticipations = participations.map(participation => {
+        if (participation.eventId === event.id && participation.status === 'undecided') {
+          return { ...participation, status: 'attending' as const };
+        }
+        return participation;
+      });
+      
       // コメントを最初の選手の参加状況に保存
       if (players.length > 0) {
         updateParticipation(players[0].id, { comment });
@@ -490,7 +498,7 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
         const participationData = {
           event_id: participation.eventId,
           player_id: participation.playerId,
-          status: participation.status,
+          status: participation.status === 'undecided' ? 'attending' : participation.status,
           parent_participation: participation.parentParticipation,
           car_capacity: participation.carCapacity,
           equipment_car: participation.equipmentCar,
