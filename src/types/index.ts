@@ -16,8 +16,8 @@ export interface Event {
   title: string;
   type: EventType;
   date: string; // YYYY-MM-DD
-  startTime: string; // HH:mm
-  endTime: string; // HH:mm
+  start_time?: string; // HH:mm (snake_case for Supabase)
+  end_time?: string; // HH:mm (snake_case for Supabase)
   location: string;
   opponent?: string; // 対戦相手
   description?: string;
@@ -25,17 +25,17 @@ export interface Event {
   parking?: string; // 駐車場情報
   files?: EventFile[];
   // 新しい項目
-  eventName?: string; // 大会名
+  event_name?: string; // 大会名 (snake_case for Supabase)
   participants?: ParticipantGroup[]; // 参加部員
-  meetingTime?: string; // 集合時間
+  meeting_time?: string; // 集合時間 (snake_case for Supabase)
   schedule?: string; // 当日予定
   clothing?: ClothingType[]; // 服装
   preparation?: string; // 準備物
   lunch?: LunchType; // 昼食
-  teaGarbageDuty?: string; // お茶・ゴミ当番
-  equipmentBenchSupport?: string; // 道具車・ベンチサポート
+  tea_garbage_duty?: string; // お茶・ゴミ当番 (snake_case for Supabase)
+  equipment_bench_support?: string; // 道具車・ベンチサポート (snake_case for Supabase)
   reference?: string; // 参考事項
-  cancellationReason?: string; // 中止・延期理由
+  cancellation_reason?: string; // 中止・延期理由 (snake_case for Supabase)
 }
 
 // イベントファイル
