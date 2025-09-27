@@ -53,7 +53,18 @@ const SupabaseTestPage: React.FC = () => {
         clothing: [],
         items: [],
         files: [],
-        lunch: 'not_required' as const
+        lunch: 'not_required' as const,
+        // 必須フィールドを追加
+        opponent: undefined,
+        description: undefined,
+        parking: undefined,
+        meetingTime: undefined,
+        schedule: undefined,
+        preparation: undefined,
+        teaGarbageDuty: undefined,
+        equipmentBenchSupport: undefined,
+        reference: undefined,
+        cancellationReason: undefined
       };
 
       const createdEvent = await eventService.createEvent(testEvent);
@@ -63,7 +74,8 @@ const SupabaseTestPage: React.FC = () => {
       const eventsData = await eventService.getEvents();
       setEvents(eventsData);
     } catch (error) {
-      setTestResult(`イベント作成エラー: ${error}`);
+      console.error('イベント作成エラー:', error);
+      setTestResult(`イベント作成エラー: ${JSON.stringify(error, null, 2)}`);
     }
   };
 
@@ -82,7 +94,8 @@ const SupabaseTestPage: React.FC = () => {
       const eventsData = await eventService.getEvents();
       setEvents(eventsData);
     } catch (error) {
-      setTestResult(`イベント削除エラー: ${error}`);
+      console.error('イベント削除エラー:', error);
+      setTestResult(`イベント削除エラー: ${JSON.stringify(error, null, 2)}`);
     }
   };
 
