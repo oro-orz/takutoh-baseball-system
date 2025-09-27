@@ -64,7 +64,6 @@ const SupabaseTestPage: React.FC = () => {
         teaGarbageDuty: undefined,
         equipmentBenchSupport: undefined,
         reference: undefined
-        // cancellationReasonは一時的に削除（データベースにカラムがないため）
       };
 
       const createdEvent = await eventService.createEvent(testEvent);
