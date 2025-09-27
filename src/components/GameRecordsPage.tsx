@@ -318,9 +318,24 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
           ...prev,
           files: [...(prev.files || []), ...savedFiles.map(f => f.id)]
         }));
+      } else {
+        // イベントが選択されていない場合、最初の試合イベントを選択
+        const gameEvents = events.filter(e => e.type !== 'practice');
+        if (gameEvents.length > 0) {
+          setSelectedEventId(gameEvents[0].id);
+          setCurrentRecord(prev => ({
+            ...prev,
+            files: [...savedFiles.map(f => f.id)]
+          }));
+        }
       }
       
       console.log('ファイルアップロード完了');
+      
+      // ファイルが保存された後、試合記録も保存
+      if (selectedEventId) {
+        await handleSaveRecord();
+      }
     } catch (error) {
       console.error('ファイル保存に失敗しました:', error);
     }
@@ -445,6 +460,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
             console.log('allFiles:', allFiles);
             console.log('uploadedFiles:', uploadedFiles);
             console.log('eventFiles:', eventFiles);
+            console.log('currentRecord.files:', currentRecord.files);
 
             return (
               <div key={event.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
