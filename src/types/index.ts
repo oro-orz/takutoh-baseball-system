@@ -77,6 +77,7 @@ export interface User {
   pin: string;
   name: string;
   role: 'admin' | 'coach' | 'player' | 'parent';
+  is_admin?: boolean; // Supabaseのis_adminカラムに対応
   lineId?: string; // LINE ID
   players: Player[];
   defaultCarCapacity?: number;

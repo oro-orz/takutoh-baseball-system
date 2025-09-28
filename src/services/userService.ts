@@ -65,6 +65,7 @@ export const userService = {
       pin: data.pin,
       name: data.name,
       role: data.is_admin ? 'admin' : 'parent',
+      is_admin: data.is_admin,
       lineId: data.email, // emailをlineIdとして使用
       players: [], // プレイヤーデータは別途管理
       defaultCarCapacity: 0,
