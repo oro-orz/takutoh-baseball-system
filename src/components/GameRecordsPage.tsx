@@ -885,7 +885,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
       {isAdmin && isEditing && (
         <div className="flex justify-end">
           <button
-            onClick={handleSaveRecord}
+            onClick={() => handleSaveRecord()}
             className="btn-primary flex items-center space-x-2"
           >
             <Save className="w-4 h-4" />
