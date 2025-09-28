@@ -68,7 +68,12 @@ const ExpenseManagementPage: React.FC = () => {
   // 支出の承認/却下
   const handleExpenseApproval = async (expenseId: string, status: 'approved' | 'rejected', rejectionReason?: string) => {
     await handleAsyncError(async () => {
-      await expenseService.approveExpense(expenseId, { expenseId, status, rejectionReason }, 'admin');
+      const approverId = authState.user?.id;
+      if (!approverId) {
+        throw new Error('承認者のIDが取得できません');
+      }
+      
+      await expenseService.approveExpense(expenseId, { expenseId, status, rejectionReason }, approverId);
       await loadData(); // データを再読み込み
     }, '支出の承認処理に失敗しました');
   };
