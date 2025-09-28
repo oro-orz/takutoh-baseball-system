@@ -181,20 +181,13 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
         savedRecord = await gameRecordService.createGameRecord(recordToSave);
       }
 
-      // ファイル情報をSupabaseに保存
+      // ファイル情報を試合記録に関連付け
       if (currentRecord.files && currentRecord.files.length > 0) {
         for (const fileId of currentRecord.files) {
-          const file = uploadedFiles.find(f => f.id === fileId);
-          if (file) {
-            await fileService.createFile({
-              name: file.name,
-              size: file.size,
-              type: file.type,
-              url: file.url,
-              game_record_id: savedRecord.id,
-              uploaded_by: authState.user?.id // 現在のユーザーID
-            });
-          }
+          // 既存のファイルのgame_record_idを更新
+          await fileService.updateFile(fileId, {
+            game_record_id: savedRecord.id
+          });
         }
       }
 
