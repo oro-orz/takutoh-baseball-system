@@ -55,6 +55,7 @@ export interface Player {
   hiraganaName?: string; // ひらがな名
   grade: number; // 学年
   position?: string; // ポジション
+  profileImageUrl?: string; // プロフィール画像URL
 }
 
 // 参加状況

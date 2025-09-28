@@ -3,7 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { User, Player } from '../types';
 import { getUsers, saveUsers } from '../utils/storage';
 import { userService } from '../services/userService';
-import { User as UserIcon, Plus, Edit, Trash2 } from 'lucide-react';
+import { supabase } from '../services/supabase';
+import { User as UserIcon, Plus, Edit, Trash2, Camera } from 'lucide-react';
 
 const MyPage: React.FC = () => {
   const { authState } = useAuth();
@@ -20,6 +21,47 @@ const MyPage: React.FC = () => {
   useEffect(() => {
     loadUsers();
   }, []);
+
+  const handleProfileImageUpload = async (playerId: string, file: File) => {
+    try {
+      // ファイルをSupabaseストレージにアップロード
+      const filePath = `profile-images/${playerId}_${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('files')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.error('画像アップロードエラー:', uploadError);
+        return;
+      }
+
+      // 公開URLを取得
+      const { data: urlData } = supabase.storage
+        .from('files')
+        .getPublicUrl(filePath);
+
+      // ユーザーデータを更新
+      const updatedPlayers = user.players.map(player => 
+        player.id === playerId 
+          ? { ...player, profileImageUrl: urlData.publicUrl }
+          : player
+      );
+
+      const updatedUser = { ...user, players: updatedPlayers };
+      
+      // Supabaseに保存
+      await userService.updateUser(user.id, {
+        players: updatedPlayers
+      });
+
+      // ローカル状態を更新
+      setUsers(prev => prev.map(u => u.id === user.id ? updatedUser : u));
+      
+      console.log('プロフィール画像をアップロードしました:', urlData.publicUrl);
+    } catch (error) {
+      console.error('プロフィール画像アップロードに失敗しました:', error);
+    }
+  };
 
   const loadUsers = async () => {
     try {
@@ -276,16 +318,53 @@ const MyPage: React.FC = () => {
           {currentUser.players.map((player) => (
             <div key={player.id} className="border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-gray-900">{player.name}</h4>
-                  {player.hiraganaName && (
-                    <p className="text-sm text-blue-600 font-medium">
-                      {player.hiraganaName}
+                <div className="flex items-center space-x-3">
+                  {/* プロフィール画像 */}
+                  <div className="relative">
+                    {player.profileImageUrl ? (
+                      <img 
+                        src={player.profileImageUrl} 
+                        alt={player.name}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                        <UserIcon className="w-6 h-6 text-gray-400" />
+                      </div>
+                    )}
+                    {/* 画像アップロードボタン */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleProfileImageUpload(player.id, file);
+                        }
+                      }}
+                      className="hidden"
+                      id={`profile-upload-${player.id}`}
+                    />
+                    <label
+                      htmlFor={`profile-upload-${player.id}`}
+                      className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-700 transition-colors"
+                      title="プロフィール画像を変更"
+                    >
+                      <Camera className="w-3 h-3 text-white" />
+                    </label>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium text-gray-900">{player.name}</h4>
+                    {player.hiraganaName && (
+                      <p className="text-sm text-blue-600 font-medium">
+                        {player.hiraganaName}
+                      </p>
+                    )}
+                    <p className="text-sm text-gray-600">
+                      {player.grade}年生 {player.position && `・${player.position}`}
                     </p>
-                  )}
-                  <p className="text-sm text-gray-600">
-                    {player.grade}年生 {player.position && `・${player.position}`}
-                  </p>
+                  </div>
                 </div>
                 <div className="flex space-x-2">
                   <button

@@ -6,7 +6,7 @@ import { eventService } from '../services/eventService';
 import { fileService } from '../services/fileService';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
 import { useAuth } from '../contexts/AuthContext';
-import { Calendar, Plus, Edit, Trash2, Save, X, Upload, FileText } from 'lucide-react';
+import { Calendar, Plus, Edit, Trash2, Save, X, Upload, FileText, MapPin, Clock, Users, Utensils, AlertCircle } from 'lucide-react';
 
 const EventManagementPage: React.FC = () => {
   const { authState } = useAuth();
@@ -706,20 +706,37 @@ const EventManagementPage: React.FC = () => {
                       <Calendar className="w-3 h-3" />
                       <span>{formatDate(event.date)}</span>
                     </div>
-                    <div>📍 {event.location}</div>
-                    {event.meetingTime && <div>⏰ 集合: {formatTime(event.meetingTime)}</div>}
+                    <div className="flex items-center space-x-1">
+                      <MapPin className="w-3 h-3" />
+                      <span>{event.location}</span>
+                    </div>
+                    {event.meetingTime && (
+                      <div className="flex items-center space-x-1">
+                        <Clock className="w-3 h-3" />
+                        <span>集合: {formatTime(event.meetingTime)}</span>
+                      </div>
+                    )}
                     {event.participants && event.participants.length > 0 && (
-                      <div>👥 参加: {event.participants.map(p => {
-                        const option = participantOptions.find(opt => opt.value === p);
-                        return option?.label;
-                      }).join(', ')}</div>
+                      <div className="flex items-center space-x-1">
+                        <Users className="w-3 h-3" />
+                        <span>参加: {event.participants.map(p => {
+                          const option = participantOptions.find(opt => opt.value === p);
+                          return option?.label;
+                        }).join(', ')}</span>
+                      </div>
                     )}
                     {event.lunch && (
-                      <div>🍱 昼食: {event.lunch === 'required' ? '必要' : '不要'}</div>
+                      <div className="flex items-center space-x-1">
+                        <Utensils className="w-3 h-3" />
+                        <span>昼食: {event.lunch === 'required' ? '必要' : '不要'}</span>
+                      </div>
                     )}
                     {event.cancellationReason && (
-                      <div className="text-red-600">
-                        {event.type === 'cancelled' ? '❌ 中止理由' : '⏰ 延期理由'}: {event.cancellationReason}
+                      <div className="flex items-center space-x-1 text-red-600">
+                        <AlertCircle className="w-3 h-3" />
+                        <span>
+                          {event.type === 'cancelled' ? '中止理由' : '延期理由'}: {event.cancellationReason}
+                        </span>
                       </div>
                     )}
                   </div>

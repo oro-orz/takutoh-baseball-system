@@ -123,7 +123,12 @@ const SchedulePage: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-bold text-gray-900">予定一覧</h2>
+        <div className="flex items-center space-x-2">
+          <h2 className="text-lg font-bold text-gray-900">予定一覧</h2>
+          <div className="text-xs text-gray-600">
+            {filteredEvents.length}件
+          </div>
+        </div>
         <div className="flex items-center space-x-2">
           {/* アーカイブ表示切り替え */}
           <button
@@ -136,9 +141,6 @@ const SchedulePage: React.FC = () => {
           >
             {showArchived ? '最新のイベント' : '過去のイベント'}
           </button>
-          <div className="text-xs text-gray-600">
-            {filteredEvents.length}件
-          </div>
         </div>
       </div>
 

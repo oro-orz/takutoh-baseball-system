@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { User, Player } from '../types';
 import { userService } from '../services/userService';
-import { Users, Filter } from 'lucide-react';
+import { Users, Filter, X, User as UserIcon } from 'lucide-react';
 
 const PlayerRosterPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player & { parentName: string } | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -106,114 +107,176 @@ const PlayerRosterPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-4">
-      {/* ヘッダー */}
-      <div className="flex items-center space-x-2">
-        <Users className="w-5 h-5 text-gray-600" />
-        <h2 className="text-md font-semibold text-gray-900">選手名簿</h2>
-      </div>
-
-      {/* 学年別フィルター */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="flex items-center space-x-3 mb-3">
-          <Filter className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">学年で絞り込み</span>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* ヘッダー */}
+        <div className="flex items-center space-x-2">
+          <Users className="w-5 h-5 text-gray-600" />
+          <h2 className="text-md font-semibold text-gray-900">選手名簿</h2>
         </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setSelectedGrade('all')}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              selectedGrade === 'all'
-                ? 'bg-primary-500 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            全て ({filteredPlayers.length})
-          </button>
-          {getAvailableGrades().map(grade => {
-            const count = users.reduce((total, user) => 
-              total + user.players.filter(player => player.grade.toString() === grade).length, 0
-            );
-            return (
-              <button
-                key={grade}
-                onClick={() => setSelectedGrade(grade)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  selectedGrade === grade
-                    ? 'bg-primary-500 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {grade}年 ({count})
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* 選手一覧 */}
-      <div className="space-y-4">
-        {filteredPlayers.length === 0 ? (
-          <div className="p-8 text-center">
-            <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p className="text-gray-500">該当する選手がいません</p>
+        {/* 学年別フィルター */}
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center space-x-3 mb-3">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">学年で絞り込み</span>
           </div>
-        ) : (
-          (() => {
-            // 学年ごとにグループ化
-            const groupedPlayers = filteredPlayers.reduce((groups, player) => {
-              const grade = player.grade;
-              if (!groups[grade]) {
-                groups[grade] = [];
-              }
-              groups[grade].push(player);
-              return groups;
-            }, {} as Record<number, Array<Player & { parentName: string }>>);
+          
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setSelectedGrade('all')}
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                selectedGrade === 'all'
+                  ? 'bg-primary-500 text-white shadow-sm'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              全て ({filteredPlayers.length})
+            </button>
+            {getAvailableGrades().map(grade => {
+              const count = users.reduce((total, user) => 
+                total + user.players.filter(player => player.grade.toString() === grade).length, 0
+              );
+              return (
+                <button
+                  key={grade}
+                  onClick={() => setSelectedGrade(grade)}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    selectedGrade === grade
+                      ? 'bg-primary-500 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {grade}年 ({count})
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-            // 学年順（高い順）でソート
-            const sortedGrades = Object.keys(groupedPlayers)
-              .map(Number)
-              .sort((a, b) => b - a);
+        {/* 選手一覧 */}
+        <div className="space-y-4">
+          {filteredPlayers.length === 0 ? (
+            <div className="p-8 text-center">
+              <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+              <p className="text-gray-500">該当する選手がいません</p>
+            </div>
+          ) : (
+            (() => {
+              // 学年ごとにグループ化
+              const groupedPlayers = filteredPlayers.reduce((groups, player) => {
+                const grade = player.grade;
+                if (!groups[grade]) {
+                  groups[grade] = [];
+                }
+                groups[grade].push(player);
+                return groups;
+              }, {} as Record<number, Array<Player & { parentName: string }>>);
 
-            return sortedGrades.map(grade => (
-              <div key={grade} className="space-y-2">
-                {/* 学年ヘッダー */}
-                <div className="flex items-center space-x-2">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-md text-sm font-medium ${getGradeColor(grade)}`}>
-                    {getGradeLabel(grade)}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    {groupedPlayers[grade].length}名
-                  </span>
-                </div>
-                
-                {/* その学年の選手一覧 */}
-                <div className="space-y-2">
-                  {groupedPlayers[grade]
-                    .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
-                    .map((player, index) => (
-                      <div key={`${player.id}-${index}`} className="bg-white border border-gray-200 rounded-lg p-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <h3 className="text-sm font-semibold text-gray-900">
-                              {player.name}
-                            </h3>
-                            <span className="text-xs text-gray-400">
-                              {getPositionLabel(player.position)}
-                            </span>
+              // 学年順（高い順）でソート
+              const sortedGrades = Object.keys(groupedPlayers)
+                .map(Number)
+                .sort((a, b) => b - a);
+
+              return sortedGrades.map(grade => (
+                <div key={grade} className="space-y-2">
+                  {/* 学年ヘッダー */}
+                  <div className="flex items-center space-x-2">
+                    <span className={`inline-flex items-center px-2 py-1 rounded-md text-sm font-medium ${getGradeColor(grade)}`}>
+                      {getGradeLabel(grade)}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {groupedPlayers[grade].length}名
+                    </span>
+                  </div>
+                  
+                  {/* その学年の選手一覧 */}
+                  <div className="space-y-2">
+                    {groupedPlayers[grade]
+                      .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+                      .map((player, index) => (
+                        <div 
+                          key={`${player.id}-${index}`} 
+                          className="bg-white border border-gray-200 rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                          onClick={() => setSelectedPlayer(player)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              {/* プロフィール画像 */}
+                              {player.profileImageUrl ? (
+                                <img 
+                                  src={player.profileImageUrl} 
+                                  alt={player.name}
+                                  className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                  <UserIcon className="w-4 h-4 text-gray-400" />
+                                </div>
+                              )}
+                              
+                              <div>
+                                <h3 className="text-sm font-semibold text-gray-900">
+                                  {player.name}
+                                </h3>
+                                <div className="flex items-center space-x-2">
+                                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${getGradeColor(player.grade)}`}>
+                                    {getGradeLabel(player.grade)}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {getPositionLabel(player.position)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                  </div>
                 </div>
+              ));
+            })()
+          )}
+        </div>
+
+        {/* 選手詳細モーダル */}
+        {selectedPlayer && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg max-w-xs w-full p-4">
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={() => setSelectedPlayer(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
-            ));
-          })()
+              
+              <div className="text-center">
+                {/* プロフィール画像 - スクエアの角丸 */}
+                {selectedPlayer.profileImageUrl ? (
+                  <img 
+                    src={selectedPlayer.profileImageUrl} 
+                    alt={selectedPlayer.name}
+                    className="w-40 h-40 rounded-xl object-cover border-2 border-gray-200 mx-auto mb-3"
+                  />
+                ) : (
+                  <div className="w-40 h-40 rounded-xl bg-gray-200 flex items-center justify-center mx-auto mb-3">
+                    <UserIcon className="w-20 h-20 text-gray-400" />
+                  </div>
+                )}
+                
+                {/* 選手名のみ表示 */}
+                <h4 className="text-lg font-bold text-gray-900">
+                  {selectedPlayer.name}
+                </h4>
+              </div>
+            </div>
+          </div>
         )}
       </div>
-      </div>
-    );
+    </div>
+  );
 };
 
 export default PlayerRosterPage;

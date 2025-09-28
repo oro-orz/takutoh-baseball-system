@@ -113,7 +113,7 @@ const AppContent: React.FC = () => {
                   setActiveTab(tab.id);
                   localStorage.setItem('activeTab', tab.id);
                 }}
-                className={`flex flex-col items-center justify-center py-1.5 px-1 min-w-0 flex-1 ${
+                className={`flex flex-col items-center justify-center py-3 px-1 min-w-0 flex-1 ${
                   activeTab === tab.id
                     ? 'text-primary-600'
                     : 'text-gray-500'

@@ -687,10 +687,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
                                 <FileText className="w-4 h-4 text-gray-400" />
                                 <span className="text-sm text-gray-700 flex-1 truncate">
                                   {/\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(file.name) ? (
-                                    <span className="flex items-center space-x-1">
-                                      <span>画像をみる</span>
-                                      <Eye className="w-3 h-3 text-gray-500" />
-                                    </span>
+                                    <span>画像をみる</span>
                                   ) : file.name}
                                 </span>
                                 <div className="flex items-center space-x-2">
