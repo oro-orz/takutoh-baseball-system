@@ -3,8 +3,10 @@ import { Banknote, CheckCircle, XCircle, Clock, Eye, Filter } from 'lucide-react
 import { Expense, ExpenseCategory, ExpenseSubcategory } from '../types';
 import { expenseService } from '../services/expenseService';
 import { handleAsyncError } from '../utils/errorHandler';
+import { useAuth } from '../contexts/AuthContext';
 
 const ExpenseManagementPage: React.FC = () => {
+  const { authState } = useAuth();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<ExpenseCategory[]>([]);
   const [subcategories, setSubcategories] = useState<ExpenseSubcategory[]>([]);
@@ -82,8 +84,13 @@ const ExpenseManagementPage: React.FC = () => {
     if (status === 'rejected' && !rejectionReason) return;
 
     await handleAsyncError(async () => {
+      const approverId = authState.user?.id;
+      if (!approverId) {
+        throw new Error('承認者のIDが取得できません');
+      }
+      
       for (const expenseId of selectedExpenses) {
-        await expenseService.approveExpense(expenseId, { expenseId, status, rejectionReason: rejectionReason || undefined }, 'admin');
+        await expenseService.approveExpense(expenseId, { expenseId, status, rejectionReason: rejectionReason || undefined }, approverId);
       }
       setSelectedExpenses([]);
       await loadData();
