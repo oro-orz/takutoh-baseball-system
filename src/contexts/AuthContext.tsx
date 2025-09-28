@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             defaultUmpire: user.defaultUmpire
           },
           isAuthenticated: true,
-          isAdmin: user.role === 'admin',
+          isAdmin: user.is_admin || user.role === 'admin',
         };
         setAuthState(newAuthState);
         saveAuthData(newAuthState);

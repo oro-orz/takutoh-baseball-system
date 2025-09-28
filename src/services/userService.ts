@@ -45,7 +45,7 @@ export const userService = {
   // PINでユーザーを取得
   async getUserByPin(pin: string): Promise<User | null> {
     const { data, error } = await supabase
-      .from('app_users')
+      .from('users')
       .select('*')
       .eq('pin', pin)
       .single()
@@ -64,12 +64,12 @@ export const userService = {
       id: data.id,
       pin: data.pin,
       name: data.name,
-      role: data.role,
-      lineId: data.line_id,
-      players: data.players || [],
-      defaultCarCapacity: data.default_car_capacity || 0,
-      defaultEquipmentCar: data.default_equipment_car,
-      defaultUmpire: data.default_umpire
+      role: data.is_admin ? 'admin' : 'parent',
+      lineId: data.email, // emailをlineIdとして使用
+      players: [], // プレイヤーデータは別途管理
+      defaultCarCapacity: 0,
+      defaultEquipmentCar: false,
+      defaultUmpire: false
     }
   },
 
