@@ -15,7 +15,10 @@ import { initializeSampleData } from './data/sampleData';
 
 const AppContent: React.FC = () => {
   const { authState, logout } = useAuth();
-  const [activeTab, setActiveTab] = React.useState('schedule');
+  const [activeTab, setActiveTab] = React.useState(() => {
+    // LocalStorageから保存されたタブを取得、なければ'schedule'をデフォルトに
+    return localStorage.getItem('activeTab') || 'schedule';
+  });
   const [showLogoutDialog, setShowLogoutDialog] = React.useState(false);
 
   // サンプルデータの初期化
@@ -106,7 +109,10 @@ const AppContent: React.FC = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  localStorage.setItem('activeTab', tab.id);
+                }}
                 className={`flex flex-col items-center justify-center py-1.5 px-1 min-w-0 flex-1 ${
                   activeTab === tab.id
                     ? 'text-primary-600'
