@@ -643,38 +643,40 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
 
                       {/* スコアブック・写真アップロード */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          スコアブック・試合写真
-                        </label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="file"
-                            multiple
-                            accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif"
-                            onChange={(e) => {
-                              const files = e.target.files;
-                              if (files) {
-                                const newFiles = Array.from(files).map(file => ({
-                                  id: `file_${Date.now()}_${Math.random()}`,
-                                  name: file.name,
-                                  size: file.size,
-                                  type: file.type,
-                                  url: URL.createObjectURL(file),
-                                  uploadedAt: new Date().toISOString()
-                                }));
-                                handleFilesUploaded(newFiles);
-                              }
-                            }}
-                            className="hidden"
-                            id="scorebook-upload"
-                          />
-                          <label
-                            htmlFor="scorebook-upload"
-                            className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded text-sm cursor-pointer hover:bg-gray-50"
-                          >
-                            <Upload className="w-4 h-4" />
-                            <span>ファイルを選択</span>
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-sm font-medium text-gray-700">
+                            スコアブック・試合写真
                           </label>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="file"
+                              multiple
+                              accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif"
+                              onChange={(e) => {
+                                const files = e.target.files;
+                                if (files) {
+                                  const newFiles = Array.from(files).map(file => ({
+                                    id: `file_${Date.now()}_${Math.random()}`,
+                                    name: file.name,
+                                    size: file.size,
+                                    type: file.type,
+                                    url: URL.createObjectURL(file),
+                                    uploadedAt: new Date().toISOString()
+                                  }));
+                                  handleFilesUploaded(newFiles);
+                                }
+                              }}
+                              className="hidden"
+                              id="scorebook-upload"
+                            />
+                            <label
+                              htmlFor="scorebook-upload"
+                              className="flex items-center space-x-1 px-2 py-1 border border-gray-300 rounded text-xs cursor-pointer hover:bg-gray-50"
+                            >
+                              <Upload className="w-3 h-3" />
+                              <span>ファイルを選択</span>
+                            </label>
+                          </div>
                         </div>
 
                         {/* アップロード済みファイル */}
@@ -683,7 +685,9 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
                             {eventFiles.map((file) => (
                               <div key={file.id} className="flex items-center space-x-2 p-2 bg-gray-50 rounded border">
                                 <FileText className="w-4 h-4 text-gray-400" />
-                                <span className="text-sm text-gray-700 flex-1 truncate">{file.name}</span>
+                                <span className="text-sm text-gray-700 flex-1 truncate">
+                                  {/\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(file.name) ? '画像をみる' : file.name}
+                                </span>
                                 <div className="flex items-center space-x-2">
                                   <button
                                     onClick={() => {
