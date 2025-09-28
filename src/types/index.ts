@@ -150,3 +150,108 @@ export interface GameRecord {
   startingLineup?: StartingLineup[];
   scoreboard?: Scoreboard;
 }
+
+// ===== 会計管理機能の型定義 =====
+
+// 支出ステータス
+export type ExpenseStatus = 'pending' | 'approved' | 'rejected' | 'paid';
+
+// 費目カテゴリー
+export interface ExpenseCategory {
+  id: string;
+  name: string;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 費目サブカテゴリー
+export interface ExpenseSubcategory {
+  id: string;
+  categoryId: string;
+  name: string;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 支出
+export interface Expense {
+  id: string;
+  userId: string;
+  expenseDate: string; // YYYY-MM-DD
+  amount: number;
+  categoryId: string;
+  subcategoryId: string;
+  description?: string;
+  receiptUrl?: string;
+  status: ExpenseStatus;
+  rejectionReason?: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  paidAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  // 関連データ（JOINで取得）
+  category?: ExpenseCategory;
+  subcategory?: ExpenseSubcategory;
+  user?: User;
+  approver?: User;
+}
+
+// よく使われる費目
+export interface QuickExpense {
+  id: string;
+  category_id: string;
+  subcategory_id: string;
+  label: string;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+  // 関連データ（JOINで取得）
+  category?: ExpenseCategory;
+  subcategory?: ExpenseSubcategory;
+}
+
+// 立替金集計
+export interface ReimbursementSummary {
+  userId: string;
+  userName: string;
+  totalAmount: number;
+  expenseCount: number;
+  lastExpenseDate?: string;
+}
+
+// 月別支出集計
+export interface MonthlyExpenseSummary {
+  month: string; // YYYY-MM
+  categoryId: string;
+  categoryName: string;
+  subcategoryId: string;
+  subcategoryName: string;
+  expenseCount: number;
+  totalAmount: number;
+}
+
+// 支出報告フォームデータ
+export interface ExpenseFormData {
+  expenseDate: string;
+  amount: number;
+  categoryId: string;
+  subcategoryId: string;
+  description?: string;
+  receiptFile?: File;
+}
+
+// 支出承認データ
+export interface ExpenseApprovalData {
+  expenseId: string;
+  status: 'approved' | 'rejected';
+  rejectionReason?: string;
+}
+
+// 支出支払いデータ
+export interface ExpensePaymentData {
+  expenseIds: string[];
+  paymentDate: string;
+}

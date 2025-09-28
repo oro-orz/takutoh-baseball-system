@@ -1,6 +1,6 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Calendar, Users, User, LogOut, Trophy, Settings, UserCheck } from 'lucide-react';
+import { Calendar, UserCheck, Trophy, LogOut } from 'lucide-react';
 import LoginPage from './components/LoginPage';
 import SchedulePage from './components/SchedulePage';
 import ParticipationPage from './components/ParticipationPage';
@@ -11,6 +11,11 @@ import GameRecordsPage from './components/GameRecordsPage';
 import PlayerManagementPage from './components/PlayerManagementPage';
 import EventManagementPage from './components/EventManagementPage';
 import PlayerRosterPage from './components/PlayerRosterPage';
+import ExpenseReportPage from './components/ExpenseReportPage';
+import ReimbursementStatusPage from './components/ReimbursementStatusPage';
+import ExpenseManagementPage from './components/ExpenseManagementPage';
+import ReimbursementManagementPage from './components/ReimbursementManagementPage';
+import HamburgerMenu from './components/HamburgerMenu';
 import { initializeSampleData } from './data/sampleData';
 
 const AppContent: React.FC = () => {
@@ -33,21 +38,27 @@ const AppContent: React.FC = () => {
 
   const isAdmin = authState.isAdmin;
 
-  const tabs = isAdmin 
+  // 下部ナビゲーション用のタブ（よく使うメニューのみ）
+  const bottomTabs = isAdmin 
     ? [
         { id: 'schedule', label: '予定', icon: Calendar },
         { id: 'progress', label: '進捗確認', icon: UserCheck },
         { id: 'admin', label: '試合記録', icon: Trophy },
-        { id: 'profile', label: '選手管理', icon: User },
-        { id: 'management', label: 'イベント管理', icon: Settings },
       ]
     : [
         { id: 'schedule', label: '予定', icon: Calendar },
         { id: 'participation', label: '参加入力', icon: UserCheck },
         { id: 'game-records', label: '試合記録', icon: Trophy },
-        { id: 'roster', label: '選手名簿', icon: Users },
-        { id: 'profile', label: 'マイページ', icon: User },
       ];
+
+  const handleNavigate = (tabId: string) => {
+    setActiveTab(tabId);
+    localStorage.setItem('activeTab', tabId);
+  };
+
+  const handleLogout = () => {
+    setShowLogoutDialog(true);
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -63,6 +74,14 @@ const AppContent: React.FC = () => {
         return <GameRecordsPage isAdmin={isAdmin} />;
       case 'game-records':
         return <GameRecordsPage isAdmin={isAdmin} />;
+      case 'expense-report':
+        return <ExpenseReportPage />;
+      case 'reimbursement-status':
+        return <ReimbursementStatusPage />;
+      case 'expense-management':
+        return <ExpenseManagementPage />;
+      case 'reimbursement-management':
+        return <ReimbursementManagementPage />;
       case 'profile':
         return isAdmin ? <PlayerManagementPage /> : <MyPage />;
       case 'management':
@@ -86,12 +105,11 @@ const AppContent: React.FC = () => {
                 {authState.user?.name}さん
               </p>
             </div>
-            <button
-              onClick={() => setShowLogoutDialog(true)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <LogOut className="w-3 h-3" />
-            </button>
+            <HamburgerMenu 
+              isAdmin={isAdmin}
+              onNavigate={handleNavigate}
+              onLogout={handleLogout}
+            />
           </div>
         </div>
       </header>
@@ -101,18 +119,15 @@ const AppContent: React.FC = () => {
         {renderContent()}
       </main>
 
-      {/* 下部ナビゲーション */}
+      {/* 下部ナビゲーション（よく使うメニューのみ） */}
       <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-white border-t shadow-lg z-20">
         <div className="flex justify-around">
-          {tabs.map((tab) => {
+          {bottomTabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
-                onClick={() => {
-                  setActiveTab(tab.id);
-                  localStorage.setItem('activeTab', tab.id);
-                }}
+                onClick={() => handleNavigate(tab.id)}
                 className={`flex flex-col items-center justify-center py-3 px-1 min-w-0 flex-1 ${
                   activeTab === tab.id
                     ? 'text-primary-600'
