@@ -161,7 +161,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
   // const selectedEvent = filteredGameEvents.find(e => e.id === selectedEventId);
   // const eventRecord = gameRecords.find(r => r.eventId === selectedEventId);
 
-  const handleSaveRecord = async () => {
+  const handleSaveRecord = async (additionalFiles?: string[]) => {
     if (!selectedEventId) return;
 
     const result = await handleAsyncError(async () => {
@@ -184,10 +184,11 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
       }
 
       // ファイル情報を試合記録に関連付け
-      if (currentRecord.files && currentRecord.files.length > 0) {
-        console.log('ファイル関連付け開始:', currentRecord.files);
+      const filesToAssociate = additionalFiles || currentRecord.files || [];
+      if (filesToAssociate.length > 0) {
+        console.log('ファイル関連付け開始:', filesToAssociate);
         console.log('保存された記録ID:', savedRecord.id);
-        for (const fileId of currentRecord.files) {
+        for (const fileId of filesToAssociate) {
           console.log('ファイルID更新中:', fileId);
           // 既存のファイルのgame_record_idを更新
           const updatedFile = await fileService.updateFile(fileId, {
@@ -318,6 +319,9 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
           ...prev,
           files: [...(prev.files || []), ...savedFiles.map(f => f.id)]
         }));
+        
+        // ファイルが保存された後、試合記録も保存
+        await handleSaveRecord(savedFiles.map(f => f.id));
       } else {
         // イベントが選択されていない場合、最初の試合イベントを選択
         const gameEvents = events.filter(e => e.type !== 'practice');
@@ -327,14 +331,10 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
             ...prev,
             files: [...savedFiles.map(f => f.id)]
           }));
+          
+          // ファイルが保存された後、試合記録も保存
+          await handleSaveRecord(savedFiles.map(f => f.id));
         }
-      }
-      
-      console.log('ファイルアップロード完了');
-      
-      // ファイルが保存された後、試合記録も保存
-      if (selectedEventId) {
-        await handleSaveRecord();
       }
     } catch (error) {
       console.error('ファイル保存に失敗しました:', error);
