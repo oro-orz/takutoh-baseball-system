@@ -116,7 +116,9 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
       // Supabaseのデータをアプリケーションの型に変換
       const convertedRecords: GameRecord[] = await Promise.all(loadedRecords.map(async r => {
         // 各記録に関連するファイルを取得
+        console.log('記録IDのファイルを取得中:', r.id);
         const files = await fileService.getFilesByGameRecord(r.id);
+        console.log('取得されたファイル:', files);
         return {
           id: r.id,
           eventId: r.event_id,
@@ -183,12 +185,17 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
 
       // ファイル情報を試合記録に関連付け
       if (currentRecord.files && currentRecord.files.length > 0) {
+        console.log('ファイル関連付け開始:', currentRecord.files);
+        console.log('保存された記録ID:', savedRecord.id);
         for (const fileId of currentRecord.files) {
+          console.log('ファイルID更新中:', fileId);
           // 既存のファイルのgame_record_idを更新
-          await fileService.updateFile(fileId, {
+          const updatedFile = await fileService.updateFile(fileId, {
             game_record_id: savedRecord.id
           });
+          console.log('ファイル更新完了:', updatedFile);
         }
+        console.log('ファイル関連付け完了');
       }
 
       // ローカル状態を更新
