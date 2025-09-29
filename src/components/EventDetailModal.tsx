@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { X, Calendar, Clock, MapPin, FileText, Download, Eye } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Calendar, Clock, MapPin, FileText, Download, Eye, Users } from 'lucide-react';
 import { Event } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import ParticipationForm from './ParticipationForm';
+import ParticipationForm, { ParticipationFormRef } from './ParticipationForm';
+import ParticipationProgressModal from './ParticipationProgressModal';
 
 interface EventDetailModalProps {
   event: Event | null;
@@ -13,12 +14,22 @@ interface EventDetailModalProps {
 const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onClose }) => {
   const { authState } = useAuth();
   const [viewingFile, setViewingFile] = useState<{url: string, name: string} | null>(null);
+  const [showParticipationProgress, setShowParticipationProgress] = useState(false);
+  const participationFormRef = useRef<ParticipationFormRef>(null);
   
   if (!isOpen || !event) return null;
 
   const handleParticipationSave = () => {
     // 参加状況保存後の処理（必要に応じて追加）
     console.log('参加状況が保存されました');
+  };
+
+  const handleParticipationProgressClose = () => {
+    setShowParticipationProgress(false);
+    // 参加進捗モーダルを閉じる際に、参加入力フォームを再読み込み
+    if (participationFormRef.current) {
+      participationFormRef.current.reloadParticipations();
+    }
   };
 
   const isPdfFile = (fileName: string): boolean => {
@@ -333,14 +344,28 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
               </div>
             </div>
           )}
+
+          {/* 参加進捗 */}
+          <div>
+            <h3 className="text-md font-semibold text-gray-900 mb-3">参加進捗</h3>
+            <button
+              onClick={() => setShowParticipationProgress(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            >
+              <Users className="w-4 h-4" />
+              <span>参加進捗を見る</span>
+            </button>
+          </div>
           </div>
 
           {/* 参加入力フォーム（保護者のみ） */}
           {canParticipate && user && (
             <div className="border-t border-gray-200 p-4">
               <ParticipationForm
+                ref={participationFormRef}
                 event={event}
                 players={'players' in user ? user.players : []}
+                allPlayers={[]} // TODO: 全選手データを取得して渡す
                 onSave={handleParticipationSave}
               />
             </div>
@@ -384,6 +409,15 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
             </div>
           </div>
         </div>
+      )}
+
+      {/* 参加進捗モーダル */}
+      {event && (
+        <ParticipationProgressModal
+          event={event}
+          isOpen={showParticipationProgress}
+          onClose={handleParticipationProgressClose}
+        />
       )}
     </div>
   );

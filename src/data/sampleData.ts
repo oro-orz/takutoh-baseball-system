@@ -49,7 +49,7 @@ export const SAMPLE_USERS: User[] = [
 ];
 
 export const SAMPLE_ADMIN: Admin = {
-  id: 'b0097155-c78b-41b1-8b92-15216da6f822', // 実際の管理者UUID
+  id: '94253d2e-becf-475e-b88a-608f9d6543fc', // 実際の管理者UUID
   pin: '0000', // 実際の管理者PIN
   name: '管理者'
 };

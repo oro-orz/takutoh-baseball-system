@@ -79,6 +79,14 @@ const ExpenseManagementPage: React.FC = () => {
     }, '支出の承認処理に失敗しました');
   };
 
+  // 支出の支払い済み処理
+  const handleExpensePayment = async (expenseId: string) => {
+    await handleAsyncError(async () => {
+      await expenseService.markSingleAsPaid(expenseId);
+      await loadData();
+    }, '支払い処理に失敗しました');
+  };
+
   // 一括承認
   const handleBatchApproval = async (status: 'approved' | 'rejected') => {
     if (selectedExpenses.length === 0) {
@@ -448,6 +456,17 @@ const ExpenseManagementPage: React.FC = () => {
                           className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                         >
                           却下
+                        </button>
+                      </div>
+                    )}
+                    
+                    {expense.status === 'approved' && (
+                      <div className="flex space-x-1 mt-2">
+                        <button
+                          onClick={() => handleExpensePayment(expense.id)}
+                          className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                        >
+                          支払い済みにする
                         </button>
                       </div>
                     )}

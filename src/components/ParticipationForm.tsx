@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Event, Participation, Player } from '../types';
 import { getParticipations, saveParticipations } from '../utils/storage';
 import { participationService } from '../services/participationService';
@@ -9,10 +9,15 @@ import { showSuccess, handleAsyncError } from '../utils/errorHandler';
 interface ParticipationFormProps {
   event: Event;
   players: Player[];
+  allPlayers?: Player[];
   onSave: () => void;
 }
 
-const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, onSave }) => {
+export interface ParticipationFormRef {
+  reloadParticipations: () => void;
+}
+
+const ParticipationForm = forwardRef<ParticipationFormRef, ParticipationFormProps>(({ event, players, allPlayers = [], onSave }, ref) => {
   const [participations, setParticipations] = useState<Participation[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [comment, setComment] = useState('');
@@ -37,14 +42,89 @@ const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, o
         comment: p.comment || ''
       }));
       setParticipations(convertedParticipations);
+      
+      // コメントを復元（最初の選手のコメントを使用）
+      if (players.length > 0 && convertedParticipations.length > 0) {
+        // player_idの柔軟なマッチング（異なる形式に対応）
+        const firstPlayerParticipation = convertedParticipations.find(p => {
+          const savedPlayerId = p.playerId;
+          const currentPlayerId = players[0].id;
+          
+          // 1. 完全一致を最優先
+          if (savedPlayerId === currentPlayerId) return true;
+          
+          // 2. ハイフン前の部分で比較
+          const savedBase = savedPlayerId.split('-')[0];
+          const currentBase = currentPlayerId.split('-')[0];
+          if (savedBase === currentBase) return true;
+          
+          // 3. アンダースコア形式の場合も考慮（例: player_1002_1）
+          const savedUnderscoreBase = savedPlayerId.split('_').slice(0, -1).join('_');
+          const currentUnderscoreBase = currentPlayerId.split('_').slice(0, -1).join('_');
+          if (savedUnderscoreBase && currentUnderscoreBase && 
+              savedUnderscoreBase === currentUnderscoreBase) return true;
+          
+          return false;
+        });
+
+        // デバッグログ（問題解決後に削除可能）
+        console.log('=== Player ID Matching Debug (Normal Event) ===');
+        console.log('Current player ID:', players[0]?.id);
+        console.log('Saved player IDs:', convertedParticipations.map(p => p.playerId));
+        console.log('Match found:', !!firstPlayerParticipation);
+        if (firstPlayerParticipation) {
+          console.log('Matched with:', firstPlayerParticipation.playerId);
+          console.log('Comment restored:', firstPlayerParticipation.comment);
+        }
+
+        // コメントを復元し、同時にparticipations stateにも反映
+        const restoredComment = firstPlayerParticipation?.comment || '';
+        setComment(restoredComment);
+
+        // 重要：participations stateにもコメントを確実に設定
+        if (firstPlayerParticipation && restoredComment) {
+          const updatedParticipations = convertedParticipations.map(p => 
+            p.playerId === firstPlayerParticipation.playerId && p.eventId === event.id
+              ? { ...p, comment: restoredComment }
+              : p
+          );
+          setParticipations(updatedParticipations);
+        } else {
+          setParticipations(convertedParticipations);
+        }
+      } else {
+        setComment(''); // 参加状況がない場合も空文字に設定
+      }
     } catch (error) {
       console.error('参加状況読み込みに失敗しました:', error);
       // フォールバック: LocalStorageから読み込み
       const localParticipations = getParticipations();
       const eventParticipations = localParticipations.filter(p => p.eventId === event.id);
       setParticipations(eventParticipations);
+      
+      // LocalStorageからもコメントを復元
+      if (players.length > 0 && eventParticipations.length > 0) {
+        const firstPlayerParticipation = eventParticipations.find(p => p.playerId === players[0].id);
+        if (firstPlayerParticipation?.comment) {
+          setComment(firstPlayerParticipation.comment);
+        } else {
+          setComment(''); // コメントがない場合は空文字に設定
+        }
+      } else {
+        setComment(''); // 参加状況がない場合も空文字に設定
+      }
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    reloadParticipations: async () => {
+      // 現在のコメントを参加状況に反映してから再読み込み
+      if (players.length > 0) {
+        updateParticipation(players[0].id, { comment });
+      }
+      await loadParticipations();
+    }
+  }));
 
   const eventParticipations = participations.filter(p => p.eventId === event.id);
 
@@ -100,12 +180,49 @@ const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, o
     setIsSubmitting(true);
 
     const result = await handleAsyncError(async () => {
+      // コメントを反映した最新のparticipationsを作成
+      let participationsToSave = participations;
+      
       if (players.length > 0) {
-        updateParticipation(players[0].id, { comment });
+        // コメントをparticipationsに反映（state更新を待たずに直接新しい配列を作成）
+        participationsToSave = participations.map(p =>
+          p.playerId === players[0].id && p.eventId === event.id
+            ? { ...p, comment }
+            : p
+        );
+        
+        // 新しいparticipationを作成する必要がある場合
+        const existingParticipation = participationsToSave.find(
+          p => p.playerId === players[0].id && p.eventId === event.id
+        );
+        
+        if (!existingParticipation) {
+          participationsToSave = [
+            ...participationsToSave,
+            {
+              eventId: event.id,
+              playerId: players[0].id,
+              status: event.type === 'practice' || event.type === 'other' ? 'attending' : 'undecided',
+              parentParticipation: 'undecided',
+              carCapacity: 0,
+              equipmentCar: false,
+              umpire: false,
+              comment
+            }
+          ];
+        }
+        
+        // デバッグログ
+        console.log('=== Saving Comment ===');
+        console.log('Player ID:', players[0].id);
+        console.log('Comment to save:', comment);
+        console.log('Participations to save:', participationsToSave);
       }
 
-      // Supabaseに保存
-      for (const participation of eventParticipations) {
+      // Supabaseに保存（更新済みのparticipationsToSaveを使用）
+      for (const participation of participationsToSave) {
+        if (participation.eventId !== event.id) continue;
+        
         const participationData = {
           event_id: participation.eventId,
           player_id: participation.playerId,
@@ -133,7 +250,11 @@ const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, o
       // フォールバック: LocalStorageにも保存
       const allParticipations = getParticipations();
       const updatedParticipations = allParticipations.filter(p => p.eventId !== event.id);
-      saveParticipations([...updatedParticipations, ...participations]);
+      saveParticipations([...updatedParticipations, ...participationsToSave]);
+      
+      // 最後にstateを更新
+      setParticipations(participationsToSave);
+      
       onSave();
 
       return true;
@@ -153,7 +274,7 @@ const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, o
     <div className="space-y-6">
       {isPracticeEvent ? (
         // 練習イベント用のシンプルなフォーム
-        <PracticeForm event={event} players={players} onSave={onSave} />
+        <PracticeForm event={event} players={players} allPlayers={allPlayers} onSave={onSave} />
       ) : (
         // 通常のイベント用の詳細フォーム
         <>
@@ -175,7 +296,7 @@ const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, o
                         <span className="text-xs font-medium text-blue-600">{index + 1}</span>
                       </div>
                       <div>
-                        <span className="text-sm font-medium text-gray-900">{getPlayerDisplayName(player, players)}</span>
+                        <span className="text-sm font-medium text-gray-900">{getPlayerDisplayName(player, allPlayers)}</span>
                         <span className="text-xs text-gray-500 ml-1">{player.grade}年生</span>
                       </div>
                     </div>
@@ -402,16 +523,17 @@ const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, o
       )}
     </div>
   );
-};
+});
 
 // 練習用のシンプルなフォームコンポーネント
 interface PracticeFormProps {
   event: Event;
   players: Player[];
+  allPlayers?: Player[];
   onSave: () => void;
 }
 
-const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) => {
+const PracticeForm = forwardRef<ParticipationFormRef, PracticeFormProps>(({ event, players, allPlayers = [], onSave }, ref) => {
   const [participations, setParticipations] = useState<Participation[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [comment, setComment] = useState('');
@@ -436,14 +558,90 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
         comment: p.comment || ''
       }));
       setParticipations(convertedParticipations);
+      
+      // コメントを復元（最初の選手のコメントを使用）
+      if (players.length > 0 && convertedParticipations.length > 0) {
+        // player_idの柔軟なマッチング（異なる形式に対応）
+        const firstPlayerParticipation = convertedParticipations.find(p => {
+          const savedPlayerId = p.playerId;
+          const currentPlayerId = players[0].id;
+          
+          // 1. 完全一致を最優先
+          if (savedPlayerId === currentPlayerId) return true;
+          
+          // 2. ハイフン前の部分で比較
+          const savedBase = savedPlayerId.split('-')[0];
+          const currentBase = currentPlayerId.split('-')[0];
+          if (savedBase === currentBase) return true;
+          
+          // 3. アンダースコア形式の場合も考慮（例: player_1002_1）
+          const savedUnderscoreBase = savedPlayerId.split('_').slice(0, -1).join('_');
+          const currentUnderscoreBase = currentPlayerId.split('_').slice(0, -1).join('_');
+          if (savedUnderscoreBase && currentUnderscoreBase && 
+              savedUnderscoreBase === currentUnderscoreBase) return true;
+          
+          return false;
+        });
+
+        // デバッグログ（問題解決後に削除可能）
+        console.log('=== Player ID Matching Debug (Practice Event) ===');
+        console.log('Current player ID:', players[0]?.id);
+        console.log('Saved player IDs:', convertedParticipations.map(p => p.playerId));
+        console.log('Match found:', !!firstPlayerParticipation);
+        if (firstPlayerParticipation) {
+          console.log('Matched with:', firstPlayerParticipation.playerId);
+          console.log('Comment restored:', firstPlayerParticipation.comment);
+        }
+
+        // コメントを復元し、同時にparticipations stateにも反映
+        const restoredComment = firstPlayerParticipation?.comment || '';
+        setComment(restoredComment);
+
+        // 重要：participations stateにもコメントを確実に設定
+        if (firstPlayerParticipation && restoredComment) {
+          const updatedParticipations = convertedParticipations.map(p => 
+            p.playerId === firstPlayerParticipation.playerId && p.eventId === event.id
+              ? { ...p, comment: restoredComment }
+              : p
+          );
+          setParticipations(updatedParticipations);
+        } else {
+          setParticipations(convertedParticipations);
+        }
+      } else {
+        setParticipations(convertedParticipations);
+        setComment(''); // 参加状況がない場合も空文字に設定
+      }
     } catch (error) {
       console.error('参加状況読み込みに失敗しました:', error);
       // フォールバック: LocalStorageから読み込み
       const localParticipations = getParticipations();
       const eventParticipations = localParticipations.filter(p => p.eventId === event.id);
       setParticipations(eventParticipations);
+      
+      // LocalStorageからもコメントを復元
+      if (players.length > 0 && eventParticipations.length > 0) {
+        const firstPlayerParticipation = eventParticipations.find(p => p.playerId === players[0].id);
+        if (firstPlayerParticipation?.comment) {
+          setComment(firstPlayerParticipation.comment);
+        } else {
+          setComment(''); // コメントがない場合は空文字に設定
+        }
+      } else {
+        setComment(''); // 参加状況がない場合も空文字に設定
+      }
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    reloadParticipations: async () => {
+      // 現在のコメントを参加状況に反映してから再読み込み
+      if (players.length > 0) {
+        updateParticipation(players[0].id, { comment });
+      }
+      await loadParticipations();
+    }
+  }));
 
   const eventParticipations = participations.filter(p => p.eventId === event.id);
 
@@ -480,13 +678,49 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
     setIsSubmitting(true);
     
     const result = await handleAsyncError(async () => {
-      // コメントを最初の選手の参加状況に保存
+      // コメントを反映した最新のparticipationsを作成
+      let participationsToSave = participations;
+      
       if (players.length > 0) {
-        updateParticipation(players[0].id, { comment });
+        // コメントをparticipationsに反映（state更新を待たずに直接新しい配列を作成）
+        participationsToSave = participations.map(p =>
+          p.playerId === players[0].id && p.eventId === event.id
+            ? { ...p, comment }
+            : p
+        );
+        
+        // 新しいparticipationを作成する必要がある場合
+        const existingParticipation = participationsToSave.find(
+          p => p.playerId === players[0].id && p.eventId === event.id
+        );
+        
+        if (!existingParticipation) {
+          participationsToSave = [
+            ...participationsToSave,
+            {
+              eventId: event.id,
+              playerId: players[0].id,
+              status: 'attending',
+              parentParticipation: 'attending',
+              carCapacity: 0,
+              equipmentCar: false,
+              umpire: false,
+              comment
+            }
+          ];
+        }
+        
+        // デバッグログ
+        console.log('=== Saving Comment (Practice) ===');
+        console.log('Player ID:', players[0].id);
+        console.log('Comment to save:', comment);
+        console.log('Participations to save:', participationsToSave);
       }
       
-      // Supabaseに保存
-      for (const participation of eventParticipations) {
+      // Supabaseに保存（更新済みのparticipationsToSaveを使用）
+      for (const participation of participationsToSave) {
+        if (participation.eventId !== event.id) continue;
+        
         const participationData = {
           event_id: participation.eventId,
           player_id: participation.playerId,
@@ -514,7 +748,11 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
       // フォールバック: LocalStorageにも保存
       const allParticipations = getParticipations();
       const filteredParticipations = allParticipations.filter(p => p.eventId !== event.id);
-      saveParticipations([...filteredParticipations, ...participations]);
+      saveParticipations([...filteredParticipations, ...participationsToSave]);
+      
+      // 最後にstateを更新
+      setParticipations(participationsToSave);
+      
       onSave();
       return true;
     }, '参加状況の保存に失敗しました');
@@ -531,7 +769,7 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
       {/* ヘッダー */}
              <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
                <h3 className="text-base font-semibold text-gray-900 mb-1">
-                 {event.type === 'practice' ? '平日練習 - 不参加連絡' : '出欠連絡'}
+                 {event.type === 'practice' ? '平日練習 -不参加連絡' : '出欠連絡'}
                </h3>
                <p className="text-xs text-gray-600">
                  {event.type === 'practice' 
@@ -561,7 +799,7 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
                     <span className="text-xs font-medium text-blue-600">{index + 1}</span>
                   </div>
                       <div>
-                        <span className="text-sm font-medium text-gray-900">{getPlayerDisplayName(player, players)}</span>
+                        <span className="text-sm font-medium text-gray-900">{getPlayerDisplayName(player, allPlayers)}</span>
                         <span className="text-xs text-gray-500 ml-1">{player.grade}年生</span>
                       </div>
                 </div>
@@ -685,6 +923,6 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
       </div>
     </div>
   );
-};
+});
 
 export default ParticipationForm;

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Event, Participation } from '../types';
-import { getEvents, getParticipations } from '../utils/storage';
+import { Event, Participation, User } from '../types';
+import { getEvents, getParticipations, getUsers } from '../utils/storage';
 import { eventService } from '../services/eventService';
 import { participationService } from '../services/participationService';
+import { userService } from '../services/userService';
 import { Users, CheckCircle, Clock, Eye } from 'lucide-react';
 import EventDetailModal from './EventDetailModal';
 import ParticipationForm from './ParticipationForm';
@@ -12,6 +13,7 @@ const ParticipationPage: React.FC = () => {
   const { authState } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [participations, setParticipations] = useState<Participation[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [showEventModal, setShowEventModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'pending'>('all');
@@ -19,6 +21,7 @@ const ParticipationPage: React.FC = () => {
   useEffect(() => {
     loadEvents();
     loadParticipations();
+    loadAllUsers();
   }, []);
 
   const loadEvents = async () => {
@@ -57,6 +60,29 @@ const ParticipationPage: React.FC = () => {
     }
   };
 
+  const loadAllUsers = async () => {
+    try {
+      const loadedUsers = await userService.getUsers();
+      // Supabaseのデータをアプリケーションの型に変換
+      const convertedUsers: User[] = loadedUsers.map(u => ({
+        id: u.id,
+        pin: u.pin,
+        name: u.name,
+        role: u.role as 'admin' | 'coach' | 'player' | 'parent',
+        players: u.players || [],
+        defaultCarCapacity: 0,
+        defaultEquipmentCar: false,
+        defaultUmpire: false
+      }));
+      setAllUsers(convertedUsers);
+    } catch (error) {
+      console.error('Failed to load users:', error);
+      // フォールバック: LocalStorageから読み込み
+      const loadedUsers = getUsers();
+      setAllUsers(loadedUsers);
+    }
+  };
+
   const selectedEvent = events.find(e => e.id === selectedEventId);
   const user = authState.user;
   
@@ -75,6 +101,9 @@ const ParticipationPage: React.FC = () => {
   }
 
   const userPlayers = user.players;
+  
+  // 全選手リストを取得（同姓処理用）
+  const allPlayers = allUsers.flatMap(u => u.players);
 
   // 参加状況の完了判定
   const isParticipationCompleted = (event: Event): boolean => {
@@ -244,6 +273,7 @@ const ParticipationPage: React.FC = () => {
                   <ParticipationForm
                     event={event}
                     players={userPlayers}
+                    allPlayers={allPlayers}
                     onSave={handleParticipationSave}
                   />
                 </div>

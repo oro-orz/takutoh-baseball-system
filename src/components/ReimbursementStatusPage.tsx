@@ -173,7 +173,7 @@ const ReimbursementStatusPage: React.FC = () => {
                       </div>
                       
                       <div className="text-right">
-                        <p className="text-lg font-bold text-gray-900">
+                        <p className="text-sm font-medium text-gray-900">
                           {formatAmount(expense.amount)}
                         </p>
                         {expense.receiptUrl && (

@@ -44,33 +44,40 @@ export const userService = {
 
   // PINでユーザーを取得
   async getUserByPin(pin: string): Promise<User | null> {
+    console.log('🔍 getUserByPin called with PIN:', pin);
+    
     const { data, error } = await supabase
       .from('users')
       .select('*')
       .eq('pin', pin)
       .single()
 
+    console.log('🔍 Supabase response:', { data, error });
+
     if (error) {
       if (error.code === 'PGRST116') {
         // データが見つからない場合
+        console.log('🔍 No user found with PIN:', pin);
         return null
       }
       console.error('PINによるユーザー取得に失敗しました:', error)
       throw error
     }
 
+    console.log('🔍 User found:', data);
+
     // Supabaseのデータをアプリケーションの型に変換
     return {
       id: data.id,
       pin: data.pin,
       name: data.name,
-      role: data.is_admin ? 'admin' : 'parent',
+      role: data.role,
       is_admin: data.is_admin,
-      lineId: data.email, // emailをlineIdとして使用
-      players: [], // プレイヤーデータは別途管理
-      defaultCarCapacity: 0,
-      defaultEquipmentCar: false,
-      defaultUmpire: false
+      lineId: data.line_id,
+      players: data.players || [],
+      defaultCarCapacity: data.default_car_capacity || 0,
+      defaultEquipmentCar: data.default_equipment_car || false,
+      defaultUmpire: data.default_umpire || false
     }
   },
 

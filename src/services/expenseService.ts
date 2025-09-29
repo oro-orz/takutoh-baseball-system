@@ -359,6 +359,19 @@ export class ExpenseService {
 
     return stats;
   }
+
+  // 単一の支出を支払い済みにマーク
+  static async markSingleAsPaid(expenseId: string): Promise<void> {
+    const { error } = await supabase
+      .from('expenses')
+      .update({ 
+        status: 'paid',
+        paid_at: new Date().toISOString()
+      })
+      .eq('id', expenseId);
+
+    if (error) throw error;
+  }
 }
 
 export const expenseService = ExpenseService;

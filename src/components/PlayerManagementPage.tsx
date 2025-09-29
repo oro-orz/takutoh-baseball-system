@@ -207,24 +207,30 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onSubmit, onCancel }) =
 
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              ふりがな
+              ひらがな名 <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={formData.hiraganaName}
               onChange={(e) => setFormData({ ...formData, hiraganaName: e.target.value })}
               className="input-field"
+              placeholder="例：すずき いちろう"
+              required
             />
+            <p className="text-xs text-gray-500 mt-1">
+              フルネーム形式で入力してください（例：すずき いちろう）
+            </p>
           </div>
 
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">
-              学年
+              学年 <span className="text-red-500">*</span>
             </label>
             <select
               value={formData.grade}
               onChange={(e) => setFormData({ ...formData, grade: parseInt(e.target.value) })}
               className="input-field"
+              required
             >
               {[1, 2, 3, 4, 5, 6].map(grade => (
                 <option key={grade} value={grade}>{grade}年生</option>

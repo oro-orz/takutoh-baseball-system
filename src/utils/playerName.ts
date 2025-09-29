@@ -37,8 +37,8 @@ export const getPlayerDisplayName = (player: Player, allPlayers: Player[] = [], 
       const firstChar = familyNameHiragana.charAt(0);
       return `（${firstChar}）${givenName}`;
     } else {
-      // 同姓の選手がいない場合：ひらがな名のまま
-      return player.hiraganaName;
+      // 同姓の選手がいない場合：名前のみ（ひらがな）
+      return givenName;
     }
   } else {
     // 短縮形式の場合：そのまま表示
