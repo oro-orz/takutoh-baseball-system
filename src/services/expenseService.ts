@@ -245,7 +245,11 @@ export class ExpenseService {
 
     if (month) {
       const startDate = `${month}-01`;
-      const endDate = `${month}-31`;
+      // 月末日を正しく計算
+      const year = parseInt(month.substring(0, 4));
+      const monthNum = parseInt(month.substring(5, 7));
+      const lastDay = new Date(year, monthNum, 0).getDate();
+      const endDate = `${month}-${lastDay.toString().padStart(2, '0')}`;
       query = query.gte('expense_date', startDate).lte('expense_date', endDate);
     }
 
