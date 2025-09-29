@@ -88,7 +88,7 @@ export const userService = {
     }
 
     const { data, error } = await supabase
-      .from('app_users')
+      .from('users')
       .insert([supabaseUser])
       .select()
       .single()
@@ -126,7 +126,7 @@ export const userService = {
     }
 
     const { data, error } = await supabase
-      .from('app_users')
+      .from('users')
       .update(supabaseUser)
       .eq('id', id)
       .select()
@@ -154,7 +154,7 @@ export const userService = {
   // ユーザーを削除
   async deleteUser(id: string): Promise<void> {
     const { error } = await supabase
-      .from('app_users')
+      .from('users')
       .delete()
       .eq('id', id)
 
