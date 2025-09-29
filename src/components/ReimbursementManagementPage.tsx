@@ -102,7 +102,10 @@ const ReimbursementManagementPage: React.FC = () => {
     }
   };
 
-  const formatAmount = (amount: number) => {
+  const formatAmount = (amount: number | undefined) => {
+    if (amount === undefined || amount === null) {
+      return '0円';
+    }
     return amount.toLocaleString() + '円';
   };
 
@@ -115,7 +118,7 @@ const ReimbursementManagementPage: React.FC = () => {
   };
 
   // 立替金合計
-  const totalReimbursement = reimbursementSummary.reduce((sum, r) => sum + r.totalAmount, 0);
+  const totalReimbursement = reimbursementSummary.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
 
   if (isLoading) {
     return (

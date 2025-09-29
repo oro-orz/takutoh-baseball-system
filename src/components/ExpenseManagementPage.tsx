@@ -174,7 +174,10 @@ const ExpenseManagementPage: React.FC = () => {
     });
   };
 
-  const formatAmount = (amount: number) => {
+  const formatAmount = (amount: number | undefined) => {
+    if (amount === undefined || amount === null) {
+      return '0円';
+    }
     return amount.toLocaleString() + '円';
   };
 
@@ -185,7 +188,7 @@ const ExpenseManagementPage: React.FC = () => {
     approved: filteredExpenses.filter(e => e.status === 'approved').length,
     rejected: filteredExpenses.filter(e => e.status === 'rejected').length,
     paid: filteredExpenses.filter(e => e.status === 'paid').length,
-    totalAmount: filteredExpenses.reduce((sum, e) => sum + e.amount, 0)
+    totalAmount: filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0)
   };
 
   if (isLoading) {
