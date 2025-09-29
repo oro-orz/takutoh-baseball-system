@@ -42,13 +42,13 @@ const ReimbursementStatusPage: React.FC = () => {
     }
     
     acc[userId].expenses.push(expense);
-    acc[userId].totalAmount += expense.amount;
+    acc[userId].totalAmount += (expense.amount || 0);
     
     return acc;
   }, {} as Record<string, { userName: string; expenses: Expense[]; totalAmount: number }>);
 
   // 全体の合計金額
-  const totalUnpaidAmount = unpaidExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const totalUnpaidAmount = unpaidExpenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ja-JP', {
@@ -58,7 +58,10 @@ const ReimbursementStatusPage: React.FC = () => {
     });
   };
 
-  const formatAmount = (amount: number) => {
+  const formatAmount = (amount: number | undefined) => {
+    if (amount === undefined || amount === null) {
+      return '0円';
+    }
     return amount.toLocaleString() + '円';
   };
 
