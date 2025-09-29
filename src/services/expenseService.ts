@@ -190,7 +190,7 @@ export class ExpenseService {
       .from('expenses')
       .select(`
         user_id,
-        user:users!expenses_user_id_fkey(name),
+        user:users!expenses_user_id_fkey(id, name),
         amount,
         status,
         paid_at,
@@ -207,6 +207,9 @@ export class ExpenseService {
     data?.forEach((expense: any) => {
       const userId = expense.user_id;
       const amount = expense.amount || 0;
+      
+      // Debug log
+      console.log('Expense user data:', expense.user);
       
       if (!summaryMap.has(userId)) {
         summaryMap.set(userId, {
@@ -240,7 +243,7 @@ export class ExpenseService {
         category:expense_categories(name),
         subcategory:expense_subcategories(name)
       `)
-      .eq('status', 'approved')
+      .in('status', ['approved', 'paid'])  // 承認済みと支払済みを両方含む
       .order('expense_date', { ascending: false });
 
     if (month) {
@@ -260,6 +263,9 @@ export class ExpenseService {
     const summaryMap = new Map<string, MonthlyExpenseSummary>();
     
     data?.forEach((expense: any) => {
+      // Debug log
+      console.log('Monthly expense data:', expense);
+      
       const expenseMonth = expense.expense_date.substring(0, 7);
       const categoryName = expense.category?.name || '未分類';
       const subcategoryName = expense.subcategory?.name || '未分類';
