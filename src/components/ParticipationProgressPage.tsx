@@ -431,7 +431,7 @@ const ParticipationProgressPage: React.FC = () => {
                             <div key={player.id} className="space-y-1">
                               <div className="flex items-center justify-between">
                                 <span className="text-xs font-medium text-gray-700">
-                                  {getPlayerDisplayName(player)} ({player.grade}年生)
+                                  {getPlayerDisplayName(player, users.flatMap(u => u.players))} ({player.grade}年生)
                                 </span>
                               </div>
                               

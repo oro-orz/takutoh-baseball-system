@@ -470,10 +470,10 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onSubmit, onCancel }) =
               value={formData.hiraganaName}
               onChange={(e) => setFormData({ ...formData, hiraganaName: e.target.value })}
               className="input-field"
-              placeholder="例：いちろう"
+              placeholder="例：すずき いちろう"
             />
             <p className="text-xs text-gray-500 mt-1">
-              参加状況入力で表示される名前です
+              フルネーム形式で入力してください（例：すずき いちろう）。同姓の選手がいる場合は自動で（す）いちろう形式で表示されます。
             </p>
           </div>
 

@@ -175,7 +175,7 @@ const ParticipationForm: React.FC<ParticipationFormProps> = ({ event, players, o
                         <span className="text-xs font-medium text-blue-600">{index + 1}</span>
                       </div>
                       <div>
-                        <span className="text-sm font-medium text-gray-900">{getPlayerDisplayName(player)}</span>
+                        <span className="text-sm font-medium text-gray-900">{getPlayerDisplayName(player, players)}</span>
                         <span className="text-xs text-gray-500 ml-1">{player.grade}年生</span>
                       </div>
                     </div>
@@ -560,10 +560,10 @@ const PracticeForm: React.FC<PracticeFormProps> = ({ event, players, onSave }) =
                   <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-xs font-medium text-blue-600">{index + 1}</span>
                   </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-900">{getPlayerDisplayName(player)}</span>
-                    <span className="text-xs text-gray-500 ml-1">{player.grade}年生</span>
-                  </div>
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">{getPlayerDisplayName(player, players)}</span>
+                        <span className="text-xs text-gray-500 ml-1">{player.grade}年生</span>
+                      </div>
                 </div>
                 
                 <div className="flex items-center space-x-2">
