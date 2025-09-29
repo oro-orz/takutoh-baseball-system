@@ -3,7 +3,7 @@ import { Event, EventType } from '../types';
 import { getEvents } from '../utils/storage';
 import { eventService } from '../services/eventService';
 import { fileService } from '../services/fileService';
-import { Calendar, Clock, MapPin } from 'lucide-react';
+import { Calendar, Clock, MapPin, Loader2 } from 'lucide-react';
 import EventDetailModal from './EventDetailModal';
 
 const SchedulePage: React.FC = () => {
@@ -11,12 +11,14 @@ const SchedulePage: React.FC = () => {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadEvents();
   }, []);
 
   const loadEvents = async () => {
+    setIsLoading(true);
     try {
       const loadedEvents = await eventService.getEvents();
       // 各イベントに関連するファイルを取得
@@ -40,6 +42,8 @@ const SchedulePage: React.FC = () => {
       // フォールバック: LocalStorageから読み込み
       const localEvents = getEvents();
       setEvents(localEvents);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -146,7 +150,12 @@ const SchedulePage: React.FC = () => {
 
       {/* イベントリスト */}
       <div className="space-y-2">
-        {sortedEvents.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-8 text-gray-500">
+            <Loader2 className="w-8 h-8 mx-auto mb-3 text-gray-400 animate-spin" />
+            <p className="text-sm">イベントを読み込み中...</p>
+          </div>
+        ) : sortedEvents.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
             <p className="text-sm">

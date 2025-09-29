@@ -5,7 +5,7 @@ import { getEvents, getParticipations, getUsers } from '../utils/storage';
 import { eventService } from '../services/eventService';
 import { participationService } from '../services/participationService';
 import { userService } from '../services/userService';
-import { Users, CheckCircle, Clock, Eye } from 'lucide-react';
+import { Users, CheckCircle, Clock, Eye, Loader2, Calendar } from 'lucide-react';
 import EventDetailModal from './EventDetailModal';
 import ParticipationForm from './ParticipationForm';
 
@@ -17,6 +17,7 @@ const ParticipationPage: React.FC = () => {
   const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [showEventModal, setShowEventModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'pending'>('all');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadEvents();
@@ -80,6 +81,8 @@ const ParticipationPage: React.FC = () => {
       // フォールバック: LocalStorageから読み込み
       const loadedUsers = getUsers();
       setAllUsers(loadedUsers);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -216,12 +219,23 @@ const ParticipationPage: React.FC = () => {
 
       {/* イベント選択（アコーディオン） */}
       <div className="space-y-2">
-        {sortedEvents.map((event) => {
-          const isCompleted = isParticipationCompleted(event);
-          const isSelected = selectedEventId === event.id;
-          
-          return (
-            <div key={event.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        {isLoading ? (
+          <div className="text-center py-8 text-gray-500">
+            <Loader2 className="w-8 h-8 mx-auto mb-3 text-gray-400 animate-spin" />
+            <p className="text-sm">イベントを読み込み中...</p>
+          </div>
+        ) : sortedEvents.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p className="text-sm">今後の予定はありません</p>
+          </div>
+        ) : (
+          sortedEvents.map((event) => {
+            const isCompleted = isParticipationCompleted(event);
+            const isSelected = selectedEventId === event.id;
+            
+            return (
+              <div key={event.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <button
                 onClick={() => setSelectedEventId(isSelected ? '' : event.id)}
                 className={`w-full p-3 text-left transition-colors active:bg-gray-50 ${
@@ -280,7 +294,8 @@ const ParticipationPage: React.FC = () => {
               )}
             </div>
           );
-        })}
+          })
+        )}
       </div>
 
              {showEventModal && selectedEvent && (

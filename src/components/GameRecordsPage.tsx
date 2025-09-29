@@ -7,7 +7,7 @@ import { gameRecordService } from '../services/gameRecordService';
 import { fileService } from '../services/fileService';
 import { supabase } from '../services/supabase';
 // import { FileUploadArea, FileList } from './FileUpload';
-import { Trophy, Upload, Eye, Edit, Save, X, FileText, ChevronDown, Paperclip, Clock } from 'lucide-react';
+import { Trophy, Upload, Eye, Edit, Save, X, FileText, ChevronDown, Paperclip, Clock, Loader2 } from 'lucide-react';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -23,6 +23,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
   const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [isEditing, setIsEditing] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentRecord, setCurrentRecord] = useState<Partial<GameRecord>>({
     result: 'win',
     score: { our: 0, opponent: 0 },
@@ -66,6 +67,7 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
   };
 
   const loadEvents = async () => {
+    setIsLoading(true);
     try {
       const loadedEvents = await eventService.getEvents();
       setEvents(loadedEvents);
@@ -107,6 +109,8 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
           setSelectedEventId(sortedEvents[0].id);
         }
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -426,7 +430,12 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
 
       {/* 試合記録一覧（アコーディオン） */}
       <div className="space-y-3">
-        {sortedEvents.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-8 text-gray-500">
+            <Loader2 className="w-8 h-8 mx-auto mb-3 text-gray-400 animate-spin" />
+            <p className="text-sm">試合記録を読み込み中...</p>
+          </div>
+        ) : sortedEvents.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Trophy className="w-12 h-12 mx-auto mb-3 text-gray-300" />
             <p className="text-sm">
