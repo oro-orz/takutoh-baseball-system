@@ -196,8 +196,8 @@ export class ExpenseService {
         paid_at,
         created_at
       `)
-      .eq('status', 'approved')
-      .is('paid_at', null);
+      .in('status', ['pending', 'approved'])  // pending と approved の両方を含む
+      .or('paid_at.is.null,paid_at.eq.');  // paid_at が null または空文字
 
     if (error) throw error;
 
@@ -208,7 +208,6 @@ export class ExpenseService {
       const userId = expense.user_id;
       const amount = expense.amount || 0;
       
-      console.log('User data from expense:', expense.user);
       
       if (!summaryMap.has(userId)) {
         summaryMap.set(userId, {
@@ -327,7 +326,6 @@ export class ExpenseService {
       const amount = expense.amount || 0;
       stats.totalAmount += amount;
       
-      console.log('Processing expense:', expense);
       
       switch (expense.status) {
         case 'pending':
@@ -342,7 +340,6 @@ export class ExpenseService {
       }
     });
 
-    console.log('Final stats:', stats);
     return stats;
   }
 }

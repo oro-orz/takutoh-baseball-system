@@ -29,8 +29,6 @@ const ReimbursementManagementPage: React.FC = () => {
         expenseService.getExpenseStats()
       ]);
       
-      console.log('Stats data:', statsData);
-      console.log('Summary data:', summaryData);
       
       setReimbursementSummary(summaryData);
       setExpenseStats(statsData);
@@ -77,8 +75,8 @@ const ReimbursementManagementPage: React.FC = () => {
     }
   };
 
-  // 立替金合計
-  const totalReimbursement = reimbursementSummary.reduce((sum, r) => sum + (r.totalAmount || 0), 0);
+  // 立替金合計（承認済み + 承認待ち）
+  const totalReimbursement = expenseStats.totalApproved + expenseStats.totalPending;
   
   // 今月の立替金合計
   const currentMonthTotal = monthlySummary.reduce((sum, m) => sum + (m.totalAmount || 0), 0);
@@ -150,6 +148,16 @@ const ReimbursementManagementPage: React.FC = () => {
           </div>
         </div>
 
+        <div className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-lg p-4 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm opacity-90">承認済み</p>
+              <p className="text-2xl font-bold">{formatAmount(expenseStats.totalApproved)}</p>
+            </div>
+            <CheckCircle className="w-8 h-8 opacity-80" />
+          </div>
+        </div>
+
       </div>
 
       {/* 月別集計 */}
@@ -186,29 +194,35 @@ const ReimbursementManagementPage: React.FC = () => {
       </div>
 
       {/* 立替金状況サマリー */}
-      {reimbursementSummary.length > 0 && (
+      {(expenseStats.totalApproved > 0 || expenseStats.totalPending > 0) && (
         <div className="bg-white rounded-lg p-4 shadow-sm">
           <h3 className="text-sm font-medium text-gray-900 mb-3">立替金状況サマリー</h3>
-          <div className="space-y-2">
-            {reimbursementSummary.map((summary) => (
-              <div key={summary.userId} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{summary.userName}</p>
-                  <p className="text-xs text-gray-500">{summary.expenseCount}件</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-gray-900">
-                    {formatAmount(summary.totalAmount)}
-                  </p>
-                  {summary.lastExpenseDate && (
-                    <p className="text-xs text-gray-500">
-                      最終: {formatDate(summary.lastExpenseDate)}
+          {reimbursementSummary.length > 0 ? (
+            <div className="space-y-2">
+              {reimbursementSummary.map((summary) => (
+                <div key={summary.userId} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{summary.userName}</p>
+                    <p className="text-xs text-gray-500">{summary.expenseCount}件</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-gray-900">
+                      {formatAmount(summary.totalAmount)}
                     </p>
-                  )}
+                    {summary.lastExpenseDate && (
+                      <p className="text-xs text-gray-500">
+                        最終: {formatDate(summary.lastExpenseDate)}
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500 text-center py-4">
+              承認済みの未払い立替金はありません
+            </p>
+          )}
         </div>
       )}
 
