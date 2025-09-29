@@ -187,27 +187,100 @@ export class ExpenseService {
   // 立替金集計を取得
   static async getReimbursementSummary(): Promise<ReimbursementSummary[]> {
     const { data, error } = await supabase
-      .from('reimbursement_summary')
-      .select('*');
+      .from('expenses')
+      .select(`
+        user_id,
+        user:users!expenses_user_id_fkey(name),
+        amount,
+        status,
+        paid_at,
+        created_at
+      `)
+      .eq('status', 'approved')
+      .is('paid_at', null);
 
     if (error) throw error;
-    return data || [];
+
+    // ユーザー別に集計
+    const summaryMap = new Map<string, ReimbursementSummary>();
+    
+    data?.forEach((expense: any) => {
+      const userId = expense.user_id;
+      const amount = expense.amount || 0;
+      
+      if (!summaryMap.has(userId)) {
+        summaryMap.set(userId, {
+          userId,
+          userName: expense.user?.name || '不明なユーザー',
+          totalAmount: 0,
+          expenseCount: 0,
+          lastExpenseDate: expense.created_at
+        });
+      }
+      
+      const summary = summaryMap.get(userId)!;
+      summary.totalAmount += amount;
+      summary.expenseCount += 1;
+      
+      if (expense.created_at > (summary.lastExpenseDate || '')) {
+        summary.lastExpenseDate = expense.created_at;
+      }
+    });
+
+    return Array.from(summaryMap.values());
   }
 
   // 月別支出集計を取得
   static async getMonthlyExpenseSummary(month?: string): Promise<MonthlyExpenseSummary[]> {
     let query = supabase
-      .from('monthly_expense_summary')
-      .select('*')
-      .order('month', { ascending: false });
+      .from('expenses')
+      .select(`
+        expense_date,
+        amount,
+        category:expense_categories(name),
+        subcategory:expense_subcategories(name)
+      `)
+      .eq('status', 'approved')
+      .order('expense_date', { ascending: false });
 
     if (month) {
-      query = query.eq('month', month);
+      const startDate = `${month}-01`;
+      const endDate = `${month}-31`;
+      query = query.gte('expense_date', startDate).lte('expense_date', endDate);
     }
 
     const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+
+    // 月別・カテゴリ別に集計
+    const summaryMap = new Map<string, MonthlyExpenseSummary>();
+    
+    data?.forEach((expense: any) => {
+      const expenseMonth = expense.expense_date.substring(0, 7);
+      const categoryName = expense.category?.name || '未分類';
+      const subcategoryName = expense.subcategory?.name || '未分類';
+      const amount = expense.amount || 0;
+      
+      const key = `${expenseMonth}-${categoryName}-${subcategoryName}`;
+      
+      if (!summaryMap.has(key)) {
+        summaryMap.set(key, {
+          month: expenseMonth,
+          categoryId: '',
+          categoryName,
+          subcategoryId: '',
+          subcategoryName,
+          expenseCount: 0,
+          totalAmount: 0
+        });
+      }
+      
+      const summary = summaryMap.get(key)!;
+      summary.expenseCount += 1;
+      summary.totalAmount += amount;
+    });
+
+    return Array.from(summaryMap.values());
   }
 
   // ユーザーの立替金合計を取得
@@ -244,17 +317,18 @@ export class ExpenseService {
     };
 
     data?.forEach(expense => {
-      stats.totalAmount += expense.amount;
+      const amount = expense.amount || 0;
+      stats.totalAmount += amount;
       
       switch (expense.status) {
         case 'pending':
-          stats.totalPending += expense.amount;
+          stats.totalPending += amount;
           break;
         case 'approved':
-          stats.totalApproved += expense.amount;
+          stats.totalApproved += amount;
           break;
         case 'paid':
-          stats.totalPaid += expense.amount;
+          stats.totalPaid += amount;
           break;
       }
     });
