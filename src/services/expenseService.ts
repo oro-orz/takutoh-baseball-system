@@ -208,6 +208,7 @@ export class ExpenseService {
       const userId = expense.user_id;
       const amount = expense.amount || 0;
       
+      console.log('User data from expense:', expense.user);
       
       if (!summaryMap.has(userId)) {
         summaryMap.set(userId, {
@@ -326,6 +327,8 @@ export class ExpenseService {
       const amount = expense.amount || 0;
       stats.totalAmount += amount;
       
+      console.log('Processing expense:', expense);
+      
       switch (expense.status) {
         case 'pending':
           stats.totalPending += amount;
@@ -339,6 +342,7 @@ export class ExpenseService {
       }
     });
 
+    console.log('Final stats:', stats);
     return stats;
   }
 }

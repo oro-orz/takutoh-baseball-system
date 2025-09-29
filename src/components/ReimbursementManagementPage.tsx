@@ -29,6 +29,9 @@ const ReimbursementManagementPage: React.FC = () => {
         expenseService.getExpenseStats()
       ]);
       
+      console.log('Stats data:', statsData);
+      console.log('Summary data:', summaryData);
+      
       setReimbursementSummary(summaryData);
       setExpenseStats(statsData);
       
