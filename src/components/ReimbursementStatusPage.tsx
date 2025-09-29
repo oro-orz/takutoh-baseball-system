@@ -16,14 +16,14 @@ const ReimbursementStatusPage: React.FC = () => {
     setIsLoading(true);
     
     await handleAsyncError(async () => {
-      // 未払いの立替金のみを取得（全ユーザー分）
+      // 未承認・承認済みの未払い立替金を取得（全ユーザー分）
+      // 支払済みは除外
       const expenses = await expenseService.getExpenses({ 
-        status: 'approved',
-        paidAt: null // 未払いのみ
+        paidAt: null // 未払いのみ（承認待ち・承認済みの両方）
       });
       
       setUnpaidExpenses(expenses);
-    }, '未払い立替金の読み込みに失敗しました');
+    }, '立替金の読み込みに失敗しました');
     
     setIsLoading(false);
   };
@@ -76,14 +76,14 @@ const ReimbursementStatusPage: React.FC = () => {
       <div className="bg-white rounded-lg p-4 shadow-sm">
         <div className="flex items-center space-x-2">
           <Users className="w-5 h-5 text-primary-600" />
-          <h2 className="text-lg font-semibold text-gray-900">未払い立替金一覧</h2>
+          <h2 className="text-lg font-semibold text-gray-900">立替金一覧</h2>
         </div>
       </div>
 
       {/* 全体サマリー */}
       <div className="bg-white rounded-lg p-4 shadow-sm">
         <div>
-          <p className="text-sm font-medium text-gray-700">未払い立替金合計</p>
+          <p className="text-sm font-medium text-gray-700">立替金合計</p>
           <p className="text-xl font-bold text-gray-900 mt-1">{formatAmount(totalUnpaidAmount)}</p>
           <p className="text-xs text-gray-500 mt-1">
             {Object.keys(expensesByUser).length}名の立替金
@@ -91,13 +91,13 @@ const ReimbursementStatusPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 未払い立替金がない場合 */}
+      {/* 立替金がない場合 */}
       {unpaidExpenses.length === 0 ? (
         <div className="bg-white rounded-lg p-8 text-center shadow-sm">
           <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">未払い立替金なし</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">立替金なし</h3>
           <p className="text-gray-600">
-            現在、未払いの立替金はありません
+            現在、立替金はありません
           </p>
         </div>
       ) : (
@@ -130,10 +130,21 @@ const ReimbursementStatusPage: React.FC = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
-                          <Clock className="w-4 h-4 text-orange-600" />
-                          <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">
-                            未払い
-                          </span>
+                          {expense.status === 'pending' ? (
+                            <>
+                              <Clock className="w-4 h-4 text-yellow-600" />
+                              <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                                承認待ち
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <Clock className="w-4 h-4 text-orange-600" />
+                              <span className="px-2 py-1 text-xs rounded-full bg-orange-100 text-orange-800">
+                                未払い
+                              </span>
+                            </>
+                          )}
                         </div>
                         
                         <div className="space-y-1">
@@ -182,11 +193,10 @@ const ReimbursementStatusPage: React.FC = () => {
         <div className="flex items-start space-x-2">
           <AlertCircle className="w-5 h-5 text-blue-600 mt-0.5" />
           <div className="text-sm text-blue-800">
-            <p className="font-medium mb-1">未払い立替金について</p>
+            <p className="font-medium mb-1">立替金について</p>
             <ul className="space-y-1 text-xs">
-              <li>• 承認済みの未払いの立替金を表示しています</li>
               <li>• 支払済みの立替金は表示されません</li>
-              <li>• 透明性のため、全員の未払い立替金を確認できます</li>
+              <li>• 透明性のため、全員の立替金を確認できます</li>
             </ul>
           </div>
         </div>
