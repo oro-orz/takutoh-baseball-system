@@ -7,7 +7,7 @@ import { supabase } from '../services/supabase';
 import { User as UserIcon, Plus, Edit, Trash2, Camera } from 'lucide-react';
 
 const MyPage: React.FC = () => {
-  const { authState } = useAuth();
+  const { authState, updateUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [showAddPlayer, setShowAddPlayer] = useState(false);
@@ -238,6 +238,8 @@ const MyPage: React.FC = () => {
                     u.id === currentUser.id ? updatedUser : u
                   );
                   setUsers(updatedUsers);
+                  // AuthStateも更新してヘッダーに反映
+                  updateUser({ name: e.target.value });
                 }}
                 className="input-field"
               />
@@ -267,6 +269,8 @@ const MyPage: React.FC = () => {
                     u.id === currentUser.id ? updatedUser : u
                   );
                   setUsers(updatedUsers);
+                  // AuthStateも更新
+                  updateUser({ lineId: e.target.value });
                 }}
                 className="input-field"
                 placeholder="例：tanaka_taro"
