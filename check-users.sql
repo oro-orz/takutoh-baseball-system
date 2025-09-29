@@ -1,8 +1,12 @@
--- usersテーブルの内容確認
-SELECT id, name, pin FROM users ORDER BY created_at;
+-- ユーザーデータ確認とサンプル更新
+SELECT id, name, pin, is_admin FROM users ORDER BY created_at;
 
--- PIN 1001のユーザーが存在するか確認
-SELECT id, name, pin FROM users WHERE pin = '1001';
+-- 田中家の名前を田中一郎に更新
+UPDATE users 
+SET name = '田中一郎'
+WHERE name = '田中家' AND id = (
+  SELECT id FROM users WHERE name = '田中家' LIMIT 1
+);
 
--- PIN 0000のユーザーが存在するか確認  
-SELECT id, name, pin FROM users WHERE pin = '0000';
+-- 確認
+SELECT id, name, pin, is_admin FROM users WHERE name = '田中一郎';

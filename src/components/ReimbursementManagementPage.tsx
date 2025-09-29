@@ -101,7 +101,7 @@ const ReimbursementManagementPage: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-900">会計管理ダッシュボード</h2>
         </div>
         <p className="text-sm text-gray-600 mt-1">
-          立替金の状況と月別集計を確認できます
+          月別立替金の状況と統計を確認できます
         </p>
       </div>
 
@@ -163,7 +163,7 @@ const ReimbursementManagementPage: React.FC = () => {
       {/* 月別集計 */}
       <div className="bg-white rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-gray-900">月別支出集計</h3>
+          <h3 className="text-sm font-medium text-gray-900">月別立替金集計</h3>
           <input
             type="month"
             value={selectedMonth}
@@ -236,7 +236,7 @@ const ReimbursementManagementPage: React.FC = () => {
             <ul className="space-y-1 text-xs">
               <li>• 今月の立替金は当月の支出を表示しています</li>
               <li>• 未払い合計は承認済みで支払い未完了の立替金です</li>
-              <li>• 月別集計でカテゴリ別の支出状況を確認できます</li>
+              <li>• 月別立替金集計でカテゴリ別の支出状況を確認できます</li>
               <li>• 立替金状況サマリーでユーザー別の状況を確認できます</li>
             </ul>
           </div>

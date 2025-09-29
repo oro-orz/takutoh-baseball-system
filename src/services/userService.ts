@@ -19,7 +19,7 @@ export const userService = {
   // ユーザー一覧を取得
   async getUsers(): Promise<User[]> {
     const { data, error } = await supabase
-      .from('app_users')
+      .from('users')
       .select('*')
       .order('created_at', { ascending: false })
 

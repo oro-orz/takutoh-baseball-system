@@ -92,7 +92,24 @@ export class ExpenseService {
 
     const { data, error } = await query;
     if (error) throw error;
-    return data || [];
+    
+    // データをアプリケーションの型にマッピング
+    const mappedData = (data || []).map((item: any) => ({
+      ...item,
+      userId: item.user_id,
+      expenseDate: item.expense_date,
+      categoryId: item.category_id,
+      subcategoryId: item.subcategory_id,
+      receiptUrl: item.receipt_url,
+      rejectionReason: item.rejection_reason,
+      approvedBy: item.approved_by,
+      approvedAt: item.approved_at,
+      paidAt: item.paid_at,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at
+    }));
+
+    return mappedData;
   }
 
   // 支出を登録
@@ -197,7 +214,7 @@ export class ExpenseService {
         created_at
       `)
       .in('status', ['pending', 'approved'])  // pending と approved の両方を含む
-      .or('paid_at.is.null,paid_at.eq.');  // paid_at が null または空文字
+      .is('paid_at', null);  // paid_at が null（支払済みでない）
 
     if (error) throw error;
 

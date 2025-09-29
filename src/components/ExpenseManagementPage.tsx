@@ -197,6 +197,12 @@ const ExpenseManagementPage: React.FC = () => {
     totalAmount: filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0)
   };
 
+  // 対応済みの統計（新しい分類）
+  const handlingStats = {
+    pendingCount: stats.pending + stats.approved, // 未対応：承認待ち + 承認済み
+    handledCount: stats.paid + stats.rejected      // 対応済み：支払い済み + 却下
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -212,46 +218,37 @@ const ExpenseManagementPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Banknote className="w-5 h-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-gray-900">支出管理</h2>
+            <h2 className="text-lg font-semibold text-gray-900">立替金管理</h2>
           </div>
           <div className="text-sm text-gray-600">
             {stats.total}件 / 合計 {formatAmount(stats.totalAmount)}
           </div>
         </div>
+        <p className="text-sm text-gray-600 mt-2">立替金の承認・支払い処理を管理します</p>
       </div>
 
       {/* 統計サマリー */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white rounded-lg p-3 shadow-sm">
           <div className="flex items-center space-x-2">
-            <Clock className="w-4 h-4 text-yellow-600" />
-            <span className="text-sm font-medium text-gray-700">承認待ち</span>
+            <Clock className="w-4 h-4 text-orange-600" />
+            <span className="text-sm font-medium text-gray-700">未対応</span>
           </div>
-          <p className="text-lg font-bold text-yellow-600 mt-1">{stats.pending}件</p>
-        </div>
-
-        <div className="bg-white rounded-lg p-3 shadow-sm">
-          <div className="flex items-center space-x-2">
-            <CheckCircle className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-gray-700">承認済み</span>
-          </div>
-          <p className="text-lg font-bold text-blue-600 mt-1">{stats.approved}件</p>
-        </div>
-
-        <div className="bg-white rounded-lg p-3 shadow-sm">
-          <div className="flex items-center space-x-2">
-            <XCircle className="w-4 h-4 text-red-600" />
-            <span className="text-sm font-medium text-gray-700">却下</span>
-          </div>
-          <p className="text-lg font-bold text-red-600 mt-1">{stats.rejected}件</p>
+          <p className="text-lg font-bold text-orange-600 mt-1">{handlingStats.pendingCount}件</p>
+          <p className="text-xs text-gray-500 mt-1">
+            承認待ち: {stats.pending}件 / 承認済み: {stats.approved}件
+          </p>
         </div>
 
         <div className="bg-white rounded-lg p-3 shadow-sm">
           <div className="flex items-center space-x-2">
             <CheckCircle className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium text-gray-700">支払済み</span>
+            <span className="text-sm font-medium text-gray-700">対応済み</span>
           </div>
-          <p className="text-lg font-bold text-green-600 mt-1">{stats.paid}件</p>
+          <p className="text-lg font-bold text-green-600 mt-1">{handlingStats.handledCount}件</p>
+          <p className="text-xs text-gray-500 mt-1">
+            支払済み: {stats.paid}件 / 却下: {stats.rejected}件
+          </p>
         </div>
       </div>
 
