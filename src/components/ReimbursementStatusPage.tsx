@@ -50,12 +50,18 @@ const ReimbursementStatusPage: React.FC = () => {
   // 全体の合計金額
   const totalUnpaidAmount = unpaidExpenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return '';
+    try {
+      return new Date(dateString).toLocaleDateString('ja-JP', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Date formatting error:', error, 'Input:', dateString);
+      return '';
+    }
   };
 
   const formatAmount = (amount: number | undefined) => {
