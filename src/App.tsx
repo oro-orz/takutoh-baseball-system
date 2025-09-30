@@ -115,7 +115,7 @@ const AppContent: React.FC = () => {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="px-4 py-4 pb-20">
+      <main className="px-4 py-4 pb-24">
         {renderContent()}
       </main>
 
@@ -128,7 +128,7 @@ const AppContent: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => handleNavigate(tab.id)}
-                className={`flex flex-col items-center justify-center py-3 px-1 min-w-0 flex-1 ${
+                className={`flex flex-col items-center justify-center py-4 px-1 min-w-0 flex-1 ${
                   activeTab === tab.id
                     ? 'text-primary-600'
                     : 'text-gray-500'
