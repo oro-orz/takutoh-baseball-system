@@ -68,7 +68,7 @@ const FileUploadArea: React.FC<FileUploadAreaProps> = ({
 
       try {
         setIsUploading(true);
-        const uploadedFile = await uploadFile(file);
+        const uploadedFile = await uploadFile(file, undefined, undefined, undefined);
         onFileUploaded(uploadedFile);
       } catch (err) {
         setError('ファイルのアップロードに失敗しました');

@@ -40,7 +40,7 @@ export const isValidFileType = (file: File, allowedTypes: string[]): boolean => 
 };
 
 // ファイルアップロード処理
-export const uploadFile = async (file: File, eventId?: string, gameRecordId?: string): Promise<UploadedFile> => {
+export const uploadFile = async (file: File, eventId?: string, gameRecordId?: string, userId?: string): Promise<UploadedFile> => {
   try {
     // ファイルをBase64に変換
     const base64 = await fileToBase64(file);
@@ -52,7 +52,8 @@ export const uploadFile = async (file: File, eventId?: string, gameRecordId?: st
       type: file.type,
       url: base64,
       event_id: eventId,
-      game_record_id: gameRecordId
+      game_record_id: gameRecordId,
+      uploaded_by: userId || undefined // ユーザーIDが無効な場合はundefined
     });
 
     // アプリケーションの型に変換

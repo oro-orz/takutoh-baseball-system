@@ -273,7 +273,11 @@ const EventManagementPage: React.FC = () => {
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
-        return await uploadFile(file, editingEvent?.id);
+        // ユーザーIDが有効なUUID形式かチェック
+        const userId = authState.user?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(authState.user.id) 
+          ? authState.user.id 
+          : undefined;
+        return await uploadFile(file, editingEvent?.id, undefined, userId);
       });
       
       const uploadedFiles = await Promise.all(uploadPromises);

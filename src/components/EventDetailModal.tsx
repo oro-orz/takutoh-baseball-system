@@ -69,17 +69,8 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
   };
 
   const handleFileView = (fileUrl: string, fileName: string) => {
-    // PDFファイルの場合はGoogle Docs Viewerを使用
-    if (isPdfFile(fileName)) {
-      const viewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`;
-      setViewingFile({url: viewUrl, name: fileName});
-    } else if (isImageFile(fileName)) {
-      // 画像ファイルの場合は直接表示
-      setViewingFile({url: fileUrl, name: fileName});
-    } else {
-      // その他のファイルは直接表示
-      setViewingFile({url: fileUrl, name: fileName});
-    }
+    // すべてのファイルを直接表示（Google Docs Viewerは使用しない）
+    setViewingFile({url: fileUrl, name: fileName});
   };
 
   const handleFileDownload = (fileUrl: string, fileName: string) => {
@@ -417,18 +408,21 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
             </div>
             <div className="flex-1 overflow-hidden relative">
               {isPdfFile(viewingFile.name) ? (
-                <iframe
-                  src={viewingFile.url}
-                  className="w-full h-full border-0"
-                  title="PDF Viewer"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    border: 'none'
-                  }}
-                  allowFullScreen
-                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                />
+                <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                  <iframe
+                    src={viewingFile.url}
+                    className="w-full h-full border-0"
+                    title="PDF Viewer"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      border: 'none'
+                    }}
+                    onError={(e) => {
+                      console.error('PDFの読み込みに失敗しました:', e);
+                    }}
+                  />
+                </div>
               ) : isImageFile(viewingFile.name) ? (
                 <div className="w-full h-full flex items-center justify-center bg-gray-50">
                   <img

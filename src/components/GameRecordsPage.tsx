@@ -292,12 +292,17 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
         console.log('公開URL取得:', urlData.publicUrl);
         
         // データベースにファイル情報を保存
+        // ユーザーIDが有効なUUID形式かチェック
+        const userId = authState.user?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(authState.user.id) 
+          ? authState.user.id 
+          : undefined;
+        
         const savedFile = await fileService.createFile({
           name: file.name,
           size: file.size,
           type: file.type,
           url: urlData.publicUrl,
-          uploaded_by: authState.user?.id // 現在のユーザーID
+          uploaded_by: userId
         });
         
         console.log('データベース保存成功:', savedFile);
