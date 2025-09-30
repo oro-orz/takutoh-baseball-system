@@ -147,7 +147,7 @@ const ParticipationProgressModal: React.FC<ParticipationProgressModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] min-h-[70vh] flex flex-col overflow-hidden">
         {/* ヘッダー */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
@@ -247,7 +247,7 @@ const ParticipationProgressModal: React.FC<ParticipationProgressModalProps> = ({
         </div>
 
         {/* コンテンツ */}
-        <div className="p-4 overflow-y-auto max-h-[60vh]">
+        <div className="p-4 overflow-y-auto flex-1 min-h-[50vh]">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="text-gray-500">読み込み中...</div>

@@ -63,8 +63,23 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
     }
   };
 
+  const isImageFile = (fileName: string): boolean => {
+    const extension = fileName.toLowerCase().split('.').pop();
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'].includes(extension || '');
+  };
+
   const handleFileView = (fileUrl: string, fileName: string) => {
-    setViewingFile({url: fileUrl, name: fileName});
+    // PDFファイルの場合はGoogle Docs Viewerを使用
+    if (isPdfFile(fileName)) {
+      const viewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+      setViewingFile({url: viewUrl, name: fileName});
+    } else if (isImageFile(fileName)) {
+      // 画像ファイルの場合は直接表示
+      setViewingFile({url: fileUrl, name: fileName});
+    } else {
+      // その他のファイルは直接表示
+      setViewingFile({url: fileUrl, name: fileName});
+    }
   };
 
   const handleFileDownload = (fileUrl: string, fileName: string) => {
@@ -128,7 +143,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[95vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[95vh] min-h-[60vh] flex flex-col overflow-hidden">
         {/* 固定ヘッダー */}
         <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10 rounded-t-lg">
           <div className="flex items-center space-x-3">
@@ -146,8 +161,8 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
         </div>
 
         {/* スクロール可能なコンテンツ */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto flex flex-col">
+          <div className="p-4 space-y-4 flex-1 flex flex-col justify-start">
           {/* 基本情報 */}
           <div>
             <h3 className="text-md font-semibold text-gray-900 mb-3">基本情報</h3>
@@ -360,7 +375,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
 
           {/* 参加入力フォーム（保護者のみ） */}
           {canParticipate && user && (
-            <div className="border-t border-gray-200 p-4">
+            <div className="border-t border-gray-200 p-4 mt-auto">
               <ParticipationForm
                 ref={participationFormRef}
                 event={event}
@@ -388,7 +403,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
       {/* PDF表示モーダル */}
       {viewingFile && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-60">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] min-h-[70vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10">
               <div className="flex flex-col">
                 <h3 className="text-sm font-medium text-gray-900">{getFileNameWithoutExtension(viewingFile.name)}</h3>
@@ -400,12 +415,52 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <div className="flex-1 overflow-hidden">
-              <iframe
-                src={viewingFile.url}
-                className="w-full h-full border-0"
-                title="PDF Viewer"
-              />
+            <div className="flex-1 overflow-hidden relative">
+              {isPdfFile(viewingFile.name) ? (
+                <iframe
+                  src={viewingFile.url}
+                  className="w-full h-full border-0"
+                  title="PDF Viewer"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none'
+                  }}
+                  allowFullScreen
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                />
+              ) : isImageFile(viewingFile.name) ? (
+                <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                  <img
+                    src={viewingFile.url}
+                    alt={getFileNameWithoutExtension(viewingFile.name)}
+                    className="max-w-full max-h-full object-contain"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain'
+                    }}
+                    onError={(e) => {
+                      console.error('画像の読み込みに失敗しました:', e);
+                      // エラー時はダウンロードリンクを表示
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                  <div className="text-center p-8">
+                    <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">このファイルはプレビューできません</p>
+                    <button
+                      onClick={() => handleFileDownload(viewingFile.url, viewingFile.name)}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      ダウンロード
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

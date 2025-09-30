@@ -306,7 +306,7 @@ const ParticipationProgressPage: React.FC = () => {
       {/* 進捗確認モーダル */}
       {showModal && selectedEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[95vh] flex flex-col overflow-hidden">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[95vh] min-h-[60vh] flex flex-col overflow-hidden">
             {/* モーダルヘッダー */}
             <div className="flex items-center justify-between p-4 border-b bg-white sticky top-0 z-10 rounded-t-lg">
               <div className="flex items-center space-x-2">
@@ -322,7 +322,7 @@ const ParticipationProgressPage: React.FC = () => {
             </div>
 
             {/* モーダルコンテンツ */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 flex flex-col">
               {/* 集計情報 */}
               <div className="mb-4">
                 <h3 className="text-md font-semibold text-gray-900 mb-3">集計情報</h3>
