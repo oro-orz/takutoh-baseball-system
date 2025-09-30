@@ -29,15 +29,14 @@ const ParticipationProgressModal: React.FC<ParticipationProgressModalProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string | null>(null); // null = 全て
   const [gradeFilter, setGradeFilter] = useState<number | null>(null); // null = 全学年
-  const [hoveredPlayer, setHoveredPlayer] = useState<string | null>(null);
-  const [tappedPlayer, setTappedPlayer] = useState<string | null>(null);
+  const [commentModal, setCommentModal] = useState<{ playerName: string; comment: string } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       loadData();
     } else {
-      // モーダルを閉じる際にタップ状態をリセット
-      setTappedPlayer(null);
+      // モーダルを閉じる際にコメントモーダルをリセット
+      setCommentModal(null);
     }
   }, [isOpen, event.id]);
 
@@ -256,16 +255,18 @@ const ParticipationProgressModal: React.FC<ParticipationProgressModalProps> = ({
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
               {getSortedPlayers().map((playerParticipation) => {
                 const { player, participation } = playerParticipation;
+                const hasComment = participation?.comment && participation.comment.trim();
                 
                 return (
                   <div
                     key={player.id}
-                    className={`p-2 rounded-lg border text-center cursor-pointer relative ${getStatusColor(playerParticipation.status)}`}
-                    onMouseEnter={() => setHoveredPlayer(player.id)}
-                    onMouseLeave={() => setHoveredPlayer(null)}
+                    className={`p-2 rounded-lg border text-center ${hasComment ? 'cursor-pointer' : ''} ${getStatusColor(playerParticipation.status)}`}
                     onClick={() => {
-                      if (participation?.comment) {
-                        setTappedPlayer(tappedPlayer === player.id ? null : player.id);
+                      if (hasComment && participation.comment) {
+                        setCommentModal({
+                          playerName: getPlayerDisplayName(player, allPlayers),
+                          comment: participation.comment
+                        });
                       }
                     }}
                   >
@@ -286,22 +287,10 @@ const ParticipationProgressModal: React.FC<ParticipationProgressModalProps> = ({
                       {participation?.umpire && (
                         <CreditCard className="w-2.5 h-2.5" />
                       )}
-                      {participation?.comment && (
+                      {hasComment && (
                         <MessageCircle className="w-2.5 h-2.5" />
                       )}
                     </div>
-
-                    {/* ツールチップ */}
-                    {((hoveredPlayer === player.id || tappedPlayer === player.id) && participation?.comment) && (
-                      <div className="absolute inset-0 p-2 rounded-lg border text-center z-10 bg-white shadow-lg">
-                        <div className="text-xs font-medium text-gray-900 mb-1">
-                          {getPlayerDisplayName(player, allPlayers)}
-                        </div>
-                        <div className="text-xs text-gray-600 whitespace-pre-wrap break-words">
-                          {participation.comment}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -316,6 +305,36 @@ const ParticipationProgressModal: React.FC<ParticipationProgressModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* コメント表示モーダル */}
+      {commentModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4"
+          onClick={() => setCommentModal(null)}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-md w-full relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 閉じるボタン */}
+            <button
+              onClick={() => setCommentModal(null)}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="p-6">
+              <h3 className="text-base font-semibold text-gray-900 mb-4 text-center">
+                {commentModal.playerName}
+              </h3>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded-lg border border-gray-200">
+                {commentModal.comment}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

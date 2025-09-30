@@ -7,7 +7,7 @@ import { gameRecordService } from '../services/gameRecordService';
 import { fileService } from '../services/fileService';
 import { supabase } from '../services/supabase';
 // import { FileUploadArea, FileList } from './FileUpload';
-import { Trophy, Upload, Eye, Edit, Save, X, FileText, ChevronDown, Paperclip, Clock, Loader2 } from 'lucide-react';
+import { Trophy, Upload, Eye, Edit, Save, X, FileText, ChevronDown, Paperclip, Clock, Loader2, Trash2 } from 'lucide-react';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -24,6 +24,8 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<{ id: string; name: string } | null>(null);
   const [currentRecord, setCurrentRecord] = useState<Partial<GameRecord>>({
     result: 'win',
     score: { our: 0, opponent: 0 },
@@ -350,19 +352,29 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
     }
   };
 
-  const handleFileDeleted = async (fileId: string) => {
+  const handleFileDeleteClick = (fileId: string, fileName: string) => {
+    setFileToDelete({ id: fileId, name: fileName });
+    setShowDeleteDialog(true);
+  };
+
+  const handleFileDeleted = async () => {
+    if (!fileToDelete) return;
+
     const result = await handleAsyncError(async () => {
-      await deleteFile(fileId);
-      setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+      await deleteFile(fileToDelete.id);
+      setUploadedFiles(prev => prev.filter(f => f.id !== fileToDelete.id));
       
       // 現在の記録からも削除
       setCurrentRecord(prev => ({
         ...prev,
-        files: (prev.files || []).filter(id => id !== fileId)
+        files: (prev.files || []).filter(id => id !== fileToDelete.id)
       }));
       
       return true;
     }, 'ファイルの削除に失敗しました');
+
+    setShowDeleteDialog(false);
+    setFileToDelete(null);
 
     if (result) {
       showSuccess('ファイルを削除しました');
@@ -744,15 +756,16 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
                                       `;
                                       document.body.appendChild(modal);
                                     }}
-                                    className="text-blue-600 hover:text-blue-700 transition-colors"
+                                    className="px-2 py-1 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-700 rounded transition-colors"
                                     title="ファイルを表示"
                                   >
                                     <Eye className="w-4 h-4" />
                                   </button>
                                   {isAdmin && (
                                     <button
-                                      onClick={() => handleFileDeleted(file.id)}
-                                      className="text-red-600 hover:text-red-800"
+                                      onClick={() => handleFileDeleteClick(file.id, file.name)}
+                                      className="px-2 py-1 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 rounded transition-colors"
+                                      title="ファイルを削除"
                                     >
                                       <X className="w-4 h-4" />
                                     </button>
@@ -911,6 +924,45 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
             <Save className="w-4 h-4" />
             <span>記録を保存</span>
           </button>
+        </div>
+      )}
+
+      {/* ファイル削除確認ダイアログ */}
+      {showDeleteDialog && fileToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                ファイルを削除しますか？
+              </h3>
+              <p className="text-sm text-gray-600 mb-2">
+                {fileToDelete.name}
+              </p>
+              <p className="text-sm text-gray-500 mb-6">
+                この操作は取り消せません
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteDialog(false);
+                    setFileToDelete(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                >
+                  キャンセル
+                </button>
+                <button
+                  onClick={handleFileDeleted}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                >
+                  削除する
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

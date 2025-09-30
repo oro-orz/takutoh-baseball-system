@@ -328,15 +328,25 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
                     {getFileIcon(file.name)}
                     <span className="text-sm text-gray-700 flex-1 font-medium">{file.name}</span>
                     <div className="flex items-center space-x-2">
-                      {isPdfFile(file.name) && (
+                      {isPdfFile(file.name) ? (
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-700 transition-colors p-1 rounded hover:bg-blue-50"
+                          title="PDFを開く"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </a>
+                      ) : isImageFile(file.name) ? (
                         <button 
                           onClick={() => handleFileView(file.url, file.name)}
                           className="text-blue-600 hover:text-blue-700 transition-colors p-1 rounded hover:bg-blue-50"
-                          title="PDFを表示"
+                          title="画像を表示"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
-                      )}
+                      ) : null}
                       <button 
                         onClick={() => handleFileDownload(file.url, file.name)}
                         className="text-primary-600 hover:text-primary-700 transition-colors p-1 rounded hover:bg-primary-50"
@@ -391,7 +401,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
         </div>
       </div>
 
-      {/* PDF表示モーダル */}
+      {/* 画像表示モーダル */}
       {viewingFile && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-60">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] min-h-[70vh] flex flex-col overflow-hidden">
@@ -407,23 +417,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
               </button>
             </div>
             <div className="flex-1 overflow-hidden relative">
-              {isPdfFile(viewingFile.name) ? (
-                <div className="w-full h-full flex items-center justify-center bg-gray-50">
-                  <iframe
-                    src={viewingFile.url}
-                    className="w-full h-full border-0"
-                    title="PDF Viewer"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      border: 'none'
-                    }}
-                    onError={(e) => {
-                      console.error('PDFの読み込みに失敗しました:', e);
-                    }}
-                  />
-                </div>
-              ) : isImageFile(viewingFile.name) ? (
+              {isImageFile(viewingFile.name) ? (
                 <div className="w-full h-full flex items-center justify-center bg-gray-50">
                   <img
                     src={viewingFile.url}
