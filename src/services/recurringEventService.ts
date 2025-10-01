@@ -9,7 +9,7 @@ export interface RecurringPattern {
   location: string;
   startTime: string;
   endTime: string;
-  eventType: 'practice' | 'game' | 'other';
+  eventType: 'practice' | 'practice_game' | 'official_game' | 'other';
   patternType: 'weekly' | 'monthly';
   dayOfWeek?: number; // 0=日曜, 1=月曜, ..., 6=土曜
   weekOfMonth?: number; // 1=第1週, 2=第2週, 3=第3週, 4=第4週

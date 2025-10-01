@@ -48,21 +48,6 @@ const RecurringEventManagementPage: React.FC = () => {
     setIsGenerating(false);
   };
 
-  const handleGenerateEventsForMonth = async (year: number, month: number) => {
-    const result = await handleAsyncError(async () => {
-      setIsGenerating(true);
-      
-      const generatedCount = await recurringEventService.generateAndSaveEventsForMonth(year, month);
-      
-      return generatedCount;
-    }, '定期イベントの生成に失敗しました');
-
-    if (result !== undefined) {
-      showSuccess(`${year}年${month}月に${result}件の定期イベントを生成しました`);
-    }
-    setIsGenerating(false);
-  };
-
   const getPatternDescription = (pattern: RecurringPattern): string => {
     if (pattern.patternType === 'weekly') {
       const days = ['日', '月', '火', '水', '木', '金', '土'];
@@ -77,7 +62,8 @@ const RecurringEventManagementPage: React.FC = () => {
   const getEventTypeLabel = (type: string) => {
     const labels = {
       'practice': '練習',
-      'game': '試合',
+      'practice_game': '練習試合',
+      'official_game': '公式戦',
       'other': 'その他'
     };
     return labels[type as keyof typeof labels] || type;
@@ -208,7 +194,7 @@ const RecurringEventManagementPage: React.FC = () => {
             setShowAddPattern(false);
             setEditingPattern(null);
           }}
-          onSave={(pattern) => {
+          onSave={() => {
             // TODO: パターン保存処理
             showSuccess(editingPattern ? 'パターンを更新しました' : 'パターンを追加しました');
             setShowAddPattern(false);
@@ -228,13 +214,13 @@ interface PatternFormModalProps {
   onSave: (pattern: RecurringPattern) => void;
 }
 
-const PatternFormModal: React.FC<PatternFormModalProps> = ({ pattern, onClose, onSave }) => {
+const PatternFormModal: React.FC<PatternFormModalProps> = ({ onClose }) => {
   // TODO: パターンフォームの実装
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          {pattern ? 'パターン編集' : 'パターン追加'}
+          パターン追加
         </h3>
         <p className="text-sm text-gray-600 mb-4">
           パターンフォームの実装は次のステップで行います
