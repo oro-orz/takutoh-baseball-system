@@ -326,7 +326,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
                 {event.files.map((file) => (
                   <div key={file.id} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
                     {getFileIcon(file.name)}
-                    <span className="text-sm text-gray-700 flex-1 font-medium">{file.name}</span>
+                    <span className="text-sm text-gray-700 flex-1 font-medium truncate">{file.name}</span>
                     <div className="flex items-center space-x-2">
                       {isPdfFile(file.name) ? (
                         <a

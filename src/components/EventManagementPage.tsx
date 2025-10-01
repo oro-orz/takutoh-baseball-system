@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Event, EventType, ParticipantGroup, ClothingType, LunchType } from '../types';
 import { getEvents, saveEvents } from '../utils/storage';
-import { uploadFile, deleteFile } from '../utils/fileUpload';
+import { deleteFile, UploadedFile } from '../utils/fileUpload';
 import { eventService } from '../services/eventService';
 import { fileService } from '../services/fileService';
+import { supabase } from '../services/supabase';
 import { showSuccess, handleAsyncError } from '../utils/errorHandler';
 import { useAuth } from '../contexts/AuthContext';
 import { Calendar, Plus, Edit, Trash2, Save, X, Upload, FileText, MapPin, Clock, Users, Utensils, AlertCircle } from 'lucide-react';
@@ -272,20 +273,60 @@ const EventManagementPage: React.FC = () => {
     if (!files) return;
 
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
+      const savedFiles: UploadedFile[] = [];
+      
+      for (const file of files) {
+        // ファイルをSupabaseストレージにアップロード
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `events/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('files')
+          .upload(filePath, file);
+          
+        if (uploadError) {
+          console.error('ファイルアップロードに失敗しました:', uploadError);
+          continue;
+        }
+        
+        // 公開URLを取得
+        const { data: urlData } = supabase.storage
+          .from('files')
+          .getPublicUrl(filePath);
+        
         // ユーザーIDが有効なUUID形式かチェック
         const userId = authState.user?.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(authState.user.id) 
           ? authState.user.id 
           : undefined;
-        return await uploadFile(file, editingEvent?.id, undefined, userId);
-      });
-      
-      const uploadedFiles = await Promise.all(uploadPromises);
+        
+        // データベースにファイル情報を保存
+        const savedFile = await fileService.createFile({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: urlData.publicUrl,
+          event_id: editingEvent?.id,
+          uploaded_by: userId
+        });
+        
+        savedFiles.push({
+          id: savedFile.id,
+          name: savedFile.name,
+          size: savedFile.size,
+          type: savedFile.type,
+          url: savedFile.url,
+          uploadedAt: savedFile.created_at
+        });
+      }
       
       setFormData({
         ...formData,
-        files: [...(formData.files || []), ...uploadedFiles]
+        files: [...(formData.files || []), ...savedFiles]
       });
+      
+      // 入力をクリア
+      e.target.value = '';
     } catch (error) {
       console.error('ファイルアップロードに失敗しました:', error);
     }
