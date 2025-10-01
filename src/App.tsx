@@ -115,7 +115,7 @@ const AppContent: React.FC = () => {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="px-4 py-4 pb-28">
+      <main className="px-4 py-4 pb-32">
         {renderContent()}
       </main>
 
