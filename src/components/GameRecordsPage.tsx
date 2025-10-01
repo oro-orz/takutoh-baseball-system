@@ -494,13 +494,17 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
             console.log('currentRecord.files:', currentRecord.files);
 
             return (
-              <div key={event.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div key={event.id} className={`rounded-xl overflow-hidden transition-all ${
+                isSelected
+                  ? 'border border-primary-500'
+                  : 'border border-gray-200'
+              }`}>
               <button
                 onClick={() => setSelectedEventId(isSelected ? '' : event.id)}
-                className={`w-full p-4 text-left transition-all duration-200 ${
+                className={`w-full p-4 text-left transition-colors ${
                   isSelected
-                    ? 'bg-blue-50 border-blue-200'
-                    : 'hover:bg-gray-50'
+                    ? 'bg-primary-50 hover:bg-primary-100'
+                    : 'bg-white hover:bg-gray-50'
                 }`}
               >
                 <div className="space-y-3">
@@ -534,8 +538,8 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
                           <span className="text-xs text-gray-600">{eventFiles.length}</span>
                         </div>
                       )}
-                      <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${
-                        isSelected ? 'rotate-180' : ''
+                      <ChevronDown className={`w-4 h-4 transition-transform ${
+                        isSelected ? 'text-primary-600 rotate-180' : 'text-gray-400'
                       }`} />
                     </div>
                   </div>

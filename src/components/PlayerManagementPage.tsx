@@ -601,11 +601,19 @@ const PlayerManagementPage: React.FC = () => {
                 const playerGrades = [...new Set(user.players.map(p => p.grade))].sort((a, b) => b - a);
                 
                 return (
-                  <div key={user.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div key={user.id} className={`rounded-lg overflow-hidden transition-all ${
+                    isExpanded 
+                      ? 'border border-primary-500' 
+                      : 'border border-gray-200'
+                  }`}>
                     {/* ユーザーカード */}
                     <button
                       onClick={() => setExpandedUserId(isExpanded ? '' : user.id)}
-                      className="w-full p-3 bg-white hover:bg-gray-50 transition-colors text-left"
+                      className={`w-full p-3 transition-colors text-left ${
+                        isExpanded 
+                          ? 'bg-primary-50 hover:bg-primary-100' 
+                          : 'bg-white hover:bg-gray-50'
+                      }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
@@ -624,7 +632,7 @@ const PlayerManagementPage: React.FC = () => {
                           </div>
                         </div>
                         {isExpanded ? (
-                          <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+                          <ChevronUp className="w-5 h-5 text-primary-600 flex-shrink-0 ml-2" />
                         ) : (
                           <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
                         )}
