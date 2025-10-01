@@ -14,7 +14,7 @@ VALUES
 ('1008', '齋藤', 'parent', '[{"id": "p008", "name": "齋藤 天翔", "hiraganaName": "てんしょう", "grade": 6, "position": ""}]'::jsonb, 0, false, false),
 ('1009', '千々岩', 'parent', '[{"id": "p009", "name": "千々岩 琉生", "hiraganaName": "るい", "grade": 6, "position": ""}]'::jsonb, 0, false, false),
 
--- 5年生（9名）
+-- 5年生（8名）※小平は4年に移動
 ('1010', '吉田', 'parent', '[{"id": "p010", "name": "吉田 涼悟", "hiraganaName": "りょうご", "grade": 5, "position": ""}]'::jsonb, 0, false, false),
 ('1011', '坂口', 'parent', '[{"id": "p011", "name": "坂口 結輝", "hiraganaName": "ゆうき", "grade": 5, "position": ""}]'::jsonb, 0, false, false),
 ('1012', '松岡', 'parent', '[{"id": "p012", "name": "松岡 遼玖", "hiraganaName": "りく", "grade": 5, "position": ""}, {"id": "p036", "name": "松岡 侑矢", "hiraganaName": "ゆうや", "grade": 1, "position": ""}]'::jsonb, 0, false, false),
@@ -23,16 +23,16 @@ VALUES
 ('1015', '佐藤', 'parent', '[{"id": "p015", "name": "佐藤 映太", "hiraganaName": "えいた", "grade": 5, "position": ""}]'::jsonb, 0, false, false),
 ('1016', '山口', 'parent', '[{"id": "p016", "name": "山口 逢生", "hiraganaName": "あおい", "grade": 5, "position": ""}, {"id": "p021", "name": "山口 光星", "hiraganaName": "ひかる", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
 ('1017', '倪', 'parent', '[{"id": "p017", "name": "倪 永旭", "hiraganaName": "あさひ", "grade": 5, "position": ""}]'::jsonb, 0, false, false),
-('1018', '小平', 'parent', '[{"id": "p018", "name": "小平 聖夏", "hiraganaName": "せな", "grade": 5, "position": ""}]'::jsonb, 0, false, false),
 
--- 4年生（7名）※山口は1016に統合
-('1019', '上野', 'parent', '[{"id": "p019", "name": "上野 奏音", "hiraganaName": "かのん", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1020', '本田', 'parent', '[{"id": "p020", "name": "本田 悠浬", "hiraganaName": "ゆうり", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1021', '東', 'parent', '[{"id": "p022", "name": "東 泰我", "hiraganaName": "たいが", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1022', '福田', 'parent', '[{"id": "p023", "name": "福田 傑", "hiraganaName": "すぐる", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1023', '福田', 'parent', '[{"id": "p024", "name": "福田 海心", "hiraganaName": "かいしん", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1024', '上川', 'parent', '[{"id": "p025", "name": "上川 菜穂", "hiraganaName": "なほ", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1025', '嶽本', 'parent', '[{"id": "p026", "name": "嶽本 羽玖", "hiraganaName": "わく", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+-- 4年生（8名）※山口は1016に統合、小平を追加
+('1018', '上野', 'parent', '[{"id": "p019", "name": "上野 奏音", "hiraganaName": "かのん", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1019', '本田', 'parent', '[{"id": "p020", "name": "本田 悠浬", "hiraganaName": "ゆうり", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1020', '東', 'parent', '[{"id": "p022", "name": "東 泰我", "hiraganaName": "たいが", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1021', '福田', 'parent', '[{"id": "p023", "name": "福田 傑", "hiraganaName": "すぐる", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1022', '福田', 'parent', '[{"id": "p024", "name": "福田 海心", "hiraganaName": "かいしん", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1023', '上川', 'parent', '[{"id": "p025", "name": "上川 菜穂", "hiraganaName": "なほ", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1024', '嶽本', 'parent', '[{"id": "p026", "name": "嶽本 羽玖", "hiraganaName": "わく", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1025', '小平', 'parent', '[{"id": "p018", "name": "小平 聖夏", "hiraganaName": "せな", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
 
 -- 3年生（6名）
 ('1026', '松下', 'parent', '[{"id": "p027", "name": "松下 慶将", "hiraganaName": "けいしょう", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
@@ -57,8 +57,8 @@ VALUES
 -- 合計35アカウント（保護者）
 -- 合計39名の選手
 -- 6年生: 9名（9アカウント）
--- 5年生: 9名（9アカウント）※松岡兄弟を1012に統合
--- 4年生: 7名（7アカウント）※山口は1016に統合
+-- 5年生: 8名（8アカウント）※松岡兄弟を1012に統合、小平を4年に移動
+-- 4年生: 8名（8アカウント）※山口は1016に統合、小平を追加
 -- 3年生: 6名（6アカウント）
 -- 2年生: 3名（3アカウント）※坂本は1034に統合
 -- 1年生: 2名（1アカウント）※松岡は1012、坂本は1034に統合
