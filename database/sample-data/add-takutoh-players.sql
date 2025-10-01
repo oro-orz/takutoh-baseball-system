@@ -17,7 +17,7 @@ VALUES
 -- 5年生（9名）
 ('1010', '吉田', 'parent', '[{"id": "p010", "name": "吉田 涼悟", "hiraganaName": "りょうご", "grade": 5, "position": ""}]'::jsonb, 0, false, false),
 ('1011', '坂口', 'parent', '[{"id": "p011", "name": "坂口 結輝", "hiraganaName": "ゆうき", "grade": 5, "position": ""}]'::jsonb, 0, false, false),
-('1012', '松岡', 'parent', '[{"id": "p012", "name": "松岡 遼玖", "hiraganaName": "りく", "grade": 5, "position": ""}]'::jsonb, 0, false, false),
+('1012', '松岡', 'parent', '[{"id": "p012", "name": "松岡 遼玖", "hiraganaName": "りく", "grade": 5, "position": ""}, {"id": "p036", "name": "松岡 侑矢", "hiraganaName": "ゆうや", "grade": 1, "position": ""}]'::jsonb, 0, false, false),
 ('1013', '河野', 'parent', '[{"id": "p013", "name": "河野 兼典", "hiraganaName": "けんすけ", "grade": 5, "position": ""}]'::jsonb, 0, false, false),
 ('1014', '田中', 'parent', '[{"id": "p014", "name": "田中 海晴", "hiraganaName": "かいせい", "grade": 5, "position": ""}]'::jsonb, 0, false, false),
 ('1015', '佐藤', 'parent', '[{"id": "p015", "name": "佐藤 映太", "hiraganaName": "えいた", "grade": 5, "position": ""}]'::jsonb, 0, false, false),
@@ -47,21 +47,25 @@ VALUES
 ('1033', '鎗水', 'parent', '[{"id": "p034", "name": "鎗水 太凰", "hiraganaName": "たいおう", "grade": 2, "position": ""}]'::jsonb, 0, false, false),
 ('1034', '坂本', 'parent', '[{"id": "p035", "name": "坂本 晴", "hiraganaName": "はる", "grade": 2, "position": ""}, {"id": "p037", "name": "坂本 想", "hiraganaName": "そう", "grade": 1, "position": ""}]'::jsonb, 0, false, false),
 
--- 1年生（2名）※坂本は1034に統合
-('1035', '松岡', 'parent', '[{"id": "p036", "name": "松岡 侑矢", "hiraganaName": "ゆうや", "grade": 1, "position": ""}]'::jsonb, 0, false, false),
-('1036', '服部', 'parent', '[{"id": "p038", "name": "服部 健人", "hiraganaName": "けんと", "grade": 1, "position": ""}]'::jsonb, 0, false, false);
+-- 1年生（1名）※坂本は1034に統合、松岡は1012に統合
+('1035', '服部', 'parent', '[{"id": "p038", "name": "服部 健人", "hiraganaName": "けんと", "grade": 1, "position": ""}]'::jsonb, 0, false, false);
 
 -- 実行後の確認
 -- verify-user-insert.sql の4-7番のクエリで確認してください
 
 -- サマリー:
--- 合計36アカウント（保護者）
+-- 合計35アカウント（保護者）
 -- 合計39名の選手
--- 6年生: 9名
--- 5年生: 9名
--- 4年生: 7名（山口兄弟を1016に統合）
--- 3年生: 6名
--- 2年生: 3名（坂本兄弟を1034に統合）
--- 1年生: 2名（松岡1035、服部1036）
--- PIN: 1001-1036（連番、欠番なし）
+-- 6年生: 9名（9アカウント）
+-- 5年生: 9名（9アカウント）※松岡兄弟を1012に統合
+-- 4年生: 7名（7アカウント）※山口は1016に統合
+-- 3年生: 6名（6アカウント）
+-- 2年生: 3名（3アカウント）※坂本は1034に統合
+-- 1年生: 2名（1アカウント）※松岡は1012、坂本は1034に統合
+-- PIN: 1001-1035（連番、欠番なし）
+-- 
+-- 兄弟アカウント:
+-- - PIN 1012: 松岡 遼玖（5年）+ 松岡 侑矢（1年）
+-- - PIN 1016: 山口 逢生（5年）+ 山口 光星（4年）
+-- - PIN 1034: 坂本 晴（2年）+ 坂本 想（1年）
 
