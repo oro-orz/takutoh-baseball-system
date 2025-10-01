@@ -391,31 +391,49 @@ const ParticipationProgressPage: React.FC = () => {
                 <div className="space-y-3">
                   {users
                     .map((user) => {
-                      // 各保護者の選手を参加状況でソート
-                      const sortedPlayers = user.players
+                      // 各保護者の選手情報を準備
+                      const playersWithStatus = user.players
                         .map((player) => {
                           const participation = eventParticipations.find(p => p.playerId === player.id);
                           const playerStatus = participation?.status || 'undecided';
                           const parentStatus = participation?.parentParticipation || 'undecided';
                           return { player, participation, playerStatus, parentStatus };
-                        })
-                        .sort((a, b) => {
-                          // 参加状況でソート: 参加 → 不参加 → 未入力
+                        });
+                      
+                      // 参加状況が1つでも入力されているかチェック
+                      const hasAnyParticipation = playersWithStatus.some(p => p.playerStatus !== 'undecided');
+                      
+                      // 選手をソート
+                      const sortedPlayers = playersWithStatus.sort((a, b) => {
+                        if (hasAnyParticipation) {
+                          // 参加状況がある場合: 参加状況順 → 学年順 → ID順
                           const statusOrder = { 'attending': 0, 'not_attending': 1, 'undecided': 2 };
                           const aOrder = statusOrder[a.playerStatus as keyof typeof statusOrder];
                           const bOrder = statusOrder[b.playerStatus as keyof typeof statusOrder];
-                          return aOrder - bOrder;
-                        });
+                          
+                          if (aOrder !== bOrder) {
+                            return aOrder - bOrder;
+                          }
+                          
+                          // 同じ参加状況の場合は学年順→ID順
+                          if (a.player.grade !== b.player.grade) {
+                            return b.player.grade - a.player.grade; // 学年降順（6年→1年）
+                          }
+                          return a.player.id.localeCompare(b.player.id);
+                        } else {
+                          // 参加状況が全て未入力の場合: 学年順→ID順
+                          if (a.player.grade !== b.player.grade) {
+                            return b.player.grade - a.player.grade; // 学年降順（6年→1年）
+                          }
+                          return a.player.id.localeCompare(b.player.id);
+                        }
+                      });
                       
                       return { user, sortedPlayers };
                     })
                     .sort((a, b) => {
-                      // 保護者も参加状況でソート（最も参加している選手の状況で判定）
-                      const getBestStatus = (players: any[]) => {
-                        const statusOrder = { 'attending': 0, 'not_attending': 1, 'undecided': 2 };
-                        return Math.min(...players.map(p => statusOrder[p.playerStatus as keyof typeof statusOrder]));
-                      };
-                      return getBestStatus(a.sortedPlayers) - getBestStatus(b.sortedPlayers);
+                      // 保護者をPIN順でソート
+                      return a.user.pin.localeCompare(b.user.pin);
                     })
                     .map(({ user, sortedPlayers }) => (
                     <div key={user.id} className="border border-gray-200 rounded-lg p-3">
