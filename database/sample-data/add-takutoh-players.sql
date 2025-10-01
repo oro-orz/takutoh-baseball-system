@@ -29,18 +29,18 @@ VALUES
 ('1019', '上野', 'parent', '[{"id": "p019", "name": "上野 奏音", "hiraganaName": "かのん", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
 ('1020', '本田', 'parent', '[{"id": "p020", "name": "本田 悠浬", "hiraganaName": "ゆうり", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
 ('1021', '東', 'parent', '[{"id": "p022", "name": "東 泰我", "hiraganaName": "たいが", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1022', '福田(4)', 'parent', '[{"id": "p023", "name": "福田 傑", "hiraganaName": "すぐる", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1023', '福田(4-2)', 'parent', '[{"id": "p024", "name": "福田 海心", "hiraganaName": "かいしん", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1022', '福田', 'parent', '[{"id": "p023", "name": "福田 傑", "hiraganaName": "すぐる", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1023', '福田', 'parent', '[{"id": "p024", "name": "福田 海心", "hiraganaName": "かいしん", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
 ('1024', '上川', 'parent', '[{"id": "p025", "name": "上川 菜穂", "hiraganaName": "なほ", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
 ('1025', '嶽本', 'parent', '[{"id": "p026", "name": "嶽本 羽玖", "hiraganaName": "わく", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
 
 -- 3年生（6名）
 ('1026', '松下', 'parent', '[{"id": "p027", "name": "松下 慶将", "hiraganaName": "けいしょう", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
 ('1027', '北村', 'parent', '[{"id": "p028", "name": "北村 隆青", "hiraganaName": "りゅうせい", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
-('1028', '福田(3)', 'parent', '[{"id": "p029", "name": "福田 斗琉", "hiraganaName": "とおり", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
+('1028', '福田', 'parent', '[{"id": "p029", "name": "福田 斗琉", "hiraganaName": "とおり", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
 ('1029', '野田', 'parent', '[{"id": "p030", "name": "野田 悠真", "hiraganaName": "はるま", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
 ('1030', '小山', 'parent', '[{"id": "p031", "name": "小山 颯介", "hiraganaName": "そうすけ", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
-('1031', '佐藤(3)', 'parent', '[{"id": "p032", "name": "佐藤 暢亮", "hiraganaName": "ようすけ", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
+('1031', '佐藤', 'parent', '[{"id": "p032", "name": "佐藤 暢亮", "hiraganaName": "ようすけ", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
 
 -- 2年生（3名）※坂本は1034に統合
 ('1032', '宮田', 'parent', '[{"id": "p033", "name": "宮田 楓心", "hiraganaName": "ふうと", "grade": 2, "position": ""}]'::jsonb, 0, false, false),
