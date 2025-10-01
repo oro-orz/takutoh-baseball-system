@@ -214,25 +214,222 @@ interface PatternFormModalProps {
   onSave: (pattern: RecurringPattern) => void;
 }
 
-const PatternFormModal: React.FC<PatternFormModalProps> = ({ onClose }) => {
-  // TODO: パターンフォームの実装
+// パターンフォームモーダル（完全版）
+interface PatternFormModalProps {
+  pattern?: RecurringPattern | null;
+  onClose: () => void;
+  onSave: (pattern: RecurringPattern) => void;
+}
+
+const PatternFormModal: React.FC<PatternFormModalProps> = ({ pattern, onClose, onSave }) => {
+  const [formData, setFormData] = useState({
+    title: pattern?.title || '',
+    description: pattern?.description || '',
+    location: pattern?.location || '託麻東小学校グラウンド',
+    startTime: pattern?.startTime || '16:30',
+    endTime: pattern?.endTime || '19:00',
+    eventType: pattern?.eventType || 'practice',
+    patternType: pattern?.patternType || 'weekly',
+    dayOfWeek: pattern?.dayOfWeek || 1,
+    weekOfMonth: pattern?.weekOfMonth || 1,
+    skipHolidays: pattern?.skipHolidays ?? true,
+    startDate: pattern?.startDate || '2024-01-01',
+    isActive: pattern?.isActive ?? true
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const newPattern: RecurringPattern = {
+      id: pattern?.id || `pattern-${Date.now()}`,
+      ...formData
+    };
+    
+    onSave(newPattern);
+  };
+
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
+      <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          パターン追加
+          {pattern ? 'パターン編集' : 'パターン追加'}
         </h3>
-        <p className="text-sm text-gray-600 mb-4">
-          パターンフォームの実装は次のステップで行います
-        </p>
-        <div className="flex space-x-3">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-          >
-            閉じる
-          </button>
-        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* タイトル */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              タイトル
+            </label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="例: 練習（毎週火曜）"
+              required
+            />
+          </div>
+
+          {/* 説明 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              説明
+            </label>
+            <input
+              type="text"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="例: 週1回の練習日"
+            />
+          </div>
+
+          {/* 場所 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              場所
+            </label>
+            <input
+              type="text"
+              value={formData.location}
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              required
+            />
+          </div>
+
+          {/* 時間 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                開始時間
+              </label>
+              <input
+                type="time"
+                value={formData.startTime}
+                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                終了時間
+              </label>
+              <input
+                type="time"
+                value={formData.endTime}
+                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                required
+              />
+            </div>
+          </div>
+
+          {/* イベントタイプ */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              イベントタイプ
+            </label>
+            <select
+              value={formData.eventType}
+              onChange={(e) => setFormData({ ...formData, eventType: e.target.value as any })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="practice">練習</option>
+              <option value="practice_game">練習試合</option>
+              <option value="official_game">公式戦</option>
+              <option value="other">その他</option>
+            </select>
+          </div>
+
+          {/* パターンタイプ */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              パターンタイプ
+            </label>
+            <select
+              value={formData.patternType}
+              onChange={(e) => setFormData({ ...formData, patternType: e.target.value as any })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value="weekly">毎週</option>
+              <option value="monthly">月次（第○週）</option>
+            </select>
+          </div>
+
+          {/* 曜日 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              曜日
+            </label>
+            <select
+              value={formData.dayOfWeek}
+              onChange={(e) => setFormData({ ...formData, dayOfWeek: parseInt(e.target.value) })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            >
+              <option value={0}>日曜日</option>
+              <option value={1}>月曜日</option>
+              <option value={2}>火曜日</option>
+              <option value={3}>水曜日</option>
+              <option value={4}>木曜日</option>
+              <option value={5}>金曜日</option>
+              <option value={6}>土曜日</option>
+            </select>
+          </div>
+
+          {/* 週（月次パターンの場合のみ） */}
+          {formData.patternType === 'monthly' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                月の第何週
+              </label>
+              <select
+                value={formData.weekOfMonth}
+                onChange={(e) => setFormData({ ...formData, weekOfMonth: parseInt(e.target.value) })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value={1}>第1週</option>
+                <option value={2}>第2週</option>
+                <option value={3}>第3週</option>
+                <option value={4}>第4週</option>
+              </select>
+            </div>
+          )}
+
+          {/* 祝日スキップ */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="skipHolidays"
+              checked={formData.skipHolidays}
+              onChange={(e) => setFormData({ ...formData, skipHolidays: e.target.checked })}
+              className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+            />
+            <label htmlFor="skipHolidays" className="ml-2 block text-sm text-gray-700">
+              祝日をスキップする
+            </label>
+          </div>
+
+          {/* ボタン */}
+          <div className="flex space-x-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+            >
+              キャンセル
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors"
+            >
+              {pattern ? '更新' : '追加'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
