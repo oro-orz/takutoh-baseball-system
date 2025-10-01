@@ -28,40 +28,40 @@ VALUES
 -- 4年生（7名）※山口は1016に統合
 ('1019', '上野', 'parent', '[{"id": "p019", "name": "上野 奏音", "hiraganaName": "かのん", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
 ('1020', '本田', 'parent', '[{"id": "p020", "name": "本田 悠浬", "hiraganaName": "ゆうり", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1022', '東', 'parent', '[{"id": "p022", "name": "東 泰我", "hiraganaName": "たいが", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1023', '福田(4)', 'parent', '[{"id": "p023", "name": "福田 傑", "hiraganaName": "すぐる", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1024', '福田(4-2)', 'parent', '[{"id": "p024", "name": "福田 海心", "hiraganaName": "かいしん", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1025', '上川', 'parent', '[{"id": "p025", "name": "上川 菜穂", "hiraganaName": "なほ", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
-('1026', '嶽本', 'parent', '[{"id": "p026", "name": "嶽本 羽玖", "hiraganaName": "わく", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1021', '東', 'parent', '[{"id": "p022", "name": "東 泰我", "hiraganaName": "たいが", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1022', '福田(4)', 'parent', '[{"id": "p023", "name": "福田 傑", "hiraganaName": "すぐる", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1023', '福田(4-2)', 'parent', '[{"id": "p024", "name": "福田 海心", "hiraganaName": "かいしん", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1024', '上川', 'parent', '[{"id": "p025", "name": "上川 菜穂", "hiraganaName": "なほ", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
+('1025', '嶽本', 'parent', '[{"id": "p026", "name": "嶽本 羽玖", "hiraganaName": "わく", "grade": 4, "position": ""}]'::jsonb, 0, false, false),
 
 -- 3年生（6名）
-('1027', '松下', 'parent', '[{"id": "p027", "name": "松下 慶将", "hiraganaName": "けいしょう", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
-('1028', '北村', 'parent', '[{"id": "p028", "name": "北村 隆青", "hiraganaName": "りゅうせい", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
-('1029', '福田(3)', 'parent', '[{"id": "p029", "name": "福田 斗琉", "hiraganaName": "とおり", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
-('1030', '野田', 'parent', '[{"id": "p030", "name": "野田 悠真", "hiraganaName": "はるま", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
-('1031', '小山', 'parent', '[{"id": "p031", "name": "小山 颯介", "hiraganaName": "そうすけ", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
-('1032', '佐藤(3)', 'parent', '[{"id": "p032", "name": "佐藤 暢亮", "hiraganaName": "ようすけ", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
+('1026', '松下', 'parent', '[{"id": "p027", "name": "松下 慶将", "hiraganaName": "けいしょう", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
+('1027', '北村', 'parent', '[{"id": "p028", "name": "北村 隆青", "hiraganaName": "りゅうせい", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
+('1028', '福田(3)', 'parent', '[{"id": "p029", "name": "福田 斗琉", "hiraganaName": "とおり", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
+('1029', '野田', 'parent', '[{"id": "p030", "name": "野田 悠真", "hiraganaName": "はるま", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
+('1030', '小山', 'parent', '[{"id": "p031", "name": "小山 颯介", "hiraganaName": "そうすけ", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
+('1031', '佐藤(3)', 'parent', '[{"id": "p032", "name": "佐藤 暢亮", "hiraganaName": "ようすけ", "grade": 3, "position": ""}]'::jsonb, 0, false, false),
 
--- 2年生（3名）※坂本は1035に統合
-('1033', '宮田', 'parent', '[{"id": "p033", "name": "宮田 楓心", "hiraganaName": "ふうと", "grade": 2, "position": ""}]'::jsonb, 0, false, false),
-('1034', '鎗水', 'parent', '[{"id": "p034", "name": "鎗水 太凰", "hiraganaName": "たいおう", "grade": 2, "position": ""}]'::jsonb, 0, false, false),
-('1035', '坂本', 'parent', '[{"id": "p035", "name": "坂本 晴", "hiraganaName": "はる", "grade": 2, "position": ""}, {"id": "p037", "name": "坂本 想", "hiraganaName": "そう", "grade": 1, "position": ""}]'::jsonb, 0, false, false),
+-- 2年生（3名）※坂本は1034に統合
+('1032', '宮田', 'parent', '[{"id": "p033", "name": "宮田 楓心", "hiraganaName": "ふうと", "grade": 2, "position": ""}]'::jsonb, 0, false, false),
+('1033', '鎗水', 'parent', '[{"id": "p034", "name": "鎗水 太凰", "hiraganaName": "たいおう", "grade": 2, "position": ""}]'::jsonb, 0, false, false),
+('1034', '坂本', 'parent', '[{"id": "p035", "name": "坂本 晴", "hiraganaName": "はる", "grade": 2, "position": ""}, {"id": "p037", "name": "坂本 想", "hiraganaName": "そう", "grade": 1, "position": ""}]'::jsonb, 0, false, false),
 
--- 1年生（2名）※坂本は1035に統合
-('1036', '松岡', 'parent', '[{"id": "p036", "name": "松岡 侑矢", "hiraganaName": "ゆうや", "grade": 1, "position": ""}]'::jsonb, 0, false, false),
-('1037', '服部', 'parent', '[{"id": "p038", "name": "服部 健人", "hiraganaName": "けんと", "grade": 1, "position": ""}]'::jsonb, 0, false, false);
+-- 1年生（2名）※坂本は1034に統合
+('1035', '松岡', 'parent', '[{"id": "p036", "name": "松岡 侑矢", "hiraganaName": "ゆうや", "grade": 1, "position": ""}]'::jsonb, 0, false, false),
+('1036', '服部', 'parent', '[{"id": "p038", "name": "服部 健人", "hiraganaName": "けんと", "grade": 1, "position": ""}]'::jsonb, 0, false, false);
 
 -- 実行後の確認
 -- verify-user-insert.sql の4-7番のクエリで確認してください
 
 -- サマリー:
--- 合計37アカウント（保護者）
+-- 合計36アカウント（保護者）
 -- 合計39名の選手
 -- 6年生: 9名
 -- 5年生: 9名
 -- 4年生: 7名（山口兄弟を1016に統合）
 -- 3年生: 6名
--- 2年生: 3名（坂本兄弟を1035に統合）
--- 1年生: 2名（坂本は1035、松岡は1036に）
--- PIN: 1001-1037（欠番: 1021, 1038, 1039）
+-- 2年生: 3名（坂本兄弟を1034に統合）
+-- 1年生: 2名（松岡1035、服部1036）
+-- PIN: 1001-1036（連番、欠番なし）
 
