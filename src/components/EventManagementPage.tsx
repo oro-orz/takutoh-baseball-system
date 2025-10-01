@@ -184,19 +184,14 @@ const EventManagementPage: React.FC = () => {
         savedEvent = await eventService.updateEvent(editingEvent.id, newEvent);
       } else {
         savedEvent = await eventService.createEvent(newEvent);
-      }
-
-      // ファイル情報をSupabaseに保存
-      if (formData.files && formData.files.length > 0) {
-        for (const file of formData.files) {
-          await fileService.createFile({
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            url: file.url,
-            event_id: savedEvent.id,
-            uploaded_by: authState.user?.id // 現在のユーザーID
-          });
+        
+        // 新規イベントの場合のみ、ファイルのevent_idを更新
+        if (formData.files && formData.files.length > 0) {
+          for (const file of formData.files) {
+            await fileService.updateFile(file.id, {
+              event_id: savedEvent.id
+            });
+          }
         }
       }
 
