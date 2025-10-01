@@ -106,7 +106,7 @@ const ParticipationProgressModal: React.FC<ParticipationProgressModalProps> = ({
   const getSortedPlayers = (): PlayerParticipation[] => {
     const filteredPlayers = getFilteredPlayers();
     
-    // 参加状況が全て未記入の場合はPIN昇順、それ以外は参加状況順
+    // 参加状況が全て未記入の場合は選手ID昇順、それ以外は参加状況順
     const hasAnyParticipation = filteredPlayers.some(p => p.status !== 'pending');
     
     return filteredPlayers.sort((a, b) => {
@@ -120,11 +120,11 @@ const ParticipationProgressModal: React.FC<ParticipationProgressModalProps> = ({
           return aOrder - bOrder;
         }
         
-        // 同じ参加状況の場合はPIN順
-        return a.parentPin.localeCompare(b.parentPin);
+        // 同じ参加状況の場合は選手ID順
+        return a.player.id.localeCompare(b.player.id);
       } else {
-        // 参加状況が全て未記入の場合：PIN昇順
-        return a.parentPin.localeCompare(b.parentPin);
+        // 参加状況が全て未記入の場合：選手ID昇順
+        return a.player.id.localeCompare(b.player.id);
       }
     });
   };

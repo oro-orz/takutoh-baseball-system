@@ -194,7 +194,7 @@ const PlayerRosterPage: React.FC = () => {
                   {/* その学年の選手一覧 */}
                   <div className="space-y-2">
                     {groupedPlayers[grade]
-                      .sort((a, b) => a.parentPin.localeCompare(b.parentPin))
+                      .sort((a, b) => a.id.localeCompare(b.id))
                       .map((player, index) => (
                         <div 
                           key={`${player.id}-${index}`} 
