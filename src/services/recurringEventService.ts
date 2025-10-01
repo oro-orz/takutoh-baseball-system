@@ -189,7 +189,7 @@ class RecurringEventService {
     return [
       {
         id: 'pattern-1',
-        title: '練習（第1月曜）',
+        title: '練習',
         location: '託麻東小学校グラウンド',
         startTime: '16:30',
         endTime: '19:00',
@@ -203,7 +203,7 @@ class RecurringEventService {
       },
       {
         id: 'pattern-2',
-        title: '練習（第3月曜）',
+        title: '練習',
         location: '託麻東小学校グラウンド',
         startTime: '16:30',
         endTime: '19:00',
@@ -217,7 +217,7 @@ class RecurringEventService {
       },
       {
         id: 'pattern-3',
-        title: '練習（毎週火曜）',
+        title: '練習',
         location: '託麻東小学校グラウンド',
         startTime: '16:30',
         endTime: '19:00',
@@ -230,7 +230,7 @@ class RecurringEventService {
       },
       {
         id: 'pattern-4',
-        title: '練習（毎週木曜）',
+        title: '練習',
         location: '託麻東小学校グラウンド',
         startTime: '16:30',
         endTime: '19:00',

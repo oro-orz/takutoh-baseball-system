@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Edit, Trash2, Play, Settings } from 'lucide-react';
+import { Calendar, Plus, Edit, Trash2, MapPin, Clock } from 'lucide-react';
 import { recurringEventService, RecurringPattern } from '../services/recurringEventService';
 import { showSuccess, showError, handleAsyncError } from '../utils/errorHandler';
 
@@ -72,28 +72,8 @@ const RecurringEventManagementPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* ヘッダー */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <Settings className="w-6 h-6 text-primary-600" />
-          <h2 className="text-xl font-semibold text-gray-900">定期イベント設定</h2>
-        </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={handleGenerateEvents}
-            disabled={isGenerating}
-            className="btn-primary flex items-center space-x-2"
-          >
-            <Play className="w-4 h-4" />
-            <span>{isGenerating ? '生成中...' : '今月のイベント生成'}</span>
-          </button>
-          <button
-            onClick={() => setShowAddPattern(true)}
-            className="btn-secondary flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>パターン追加</span>
-          </button>
-        </div>
+      <div>
+        <h2 className="text-md font-semibold text-gray-900">定期イベント管理</h2>
       </div>
 
       {/* 今月のイベント生成 */}
@@ -149,8 +129,10 @@ const RecurringEventManagementPage: React.FC = () => {
                         )}
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span>📍 {pattern.location}</span>
-                        <span>🕐 {pattern.startTime}〜{pattern.endTime}</span>
+                        <MapPin className="w-3 h-3 text-gray-400" />
+                        <span>{pattern.location}</span>
+                        <Clock className="w-3 h-3 text-gray-400" />
+                        <span>{pattern.startTime}〜{pattern.endTime}</span>
                       </div>
                       {pattern.description && (
                         <div className="text-gray-500">{pattern.description}</div>
@@ -169,7 +151,9 @@ const RecurringEventManagementPage: React.FC = () => {
                     <button
                       onClick={() => {
                         if (confirm('このパターンを削除しますか？')) {
-                          // TODO: 削除処理
+                          setPatterns(prevPatterns => 
+                            prevPatterns.filter(p => p.id !== pattern.id)
+                          );
                           showSuccess('パターンを削除しました');
                         }
                       }}
@@ -186,6 +170,17 @@ const RecurringEventManagementPage: React.FC = () => {
         )}
       </div>
 
+      {/* パターン追加ボタン（控えめに配置） */}
+      <div className="flex justify-center">
+        <button
+          onClick={() => setShowAddPattern(true)}
+          className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center space-x-2 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+          <span>パターン追加</span>
+        </button>
+      </div>
+
       {/* パターン追加・編集モーダル */}
       {(showAddPattern || editingPattern) && (
         <PatternFormModal
@@ -194,12 +189,23 @@ const RecurringEventManagementPage: React.FC = () => {
             setShowAddPattern(false);
             setEditingPattern(null);
           }}
-          onSave={() => {
-            // TODO: パターン保存処理
-            showSuccess(editingPattern ? 'パターンを更新しました' : 'パターンを追加しました');
+          onSave={(updatedPattern) => {
+            // パターン保存処理
+            if (editingPattern) {
+              // 既存パターンの更新
+              setPatterns(prevPatterns => 
+                prevPatterns.map(p => 
+                  p.id === editingPattern.id ? updatedPattern : p
+                )
+              );
+              showSuccess('パターンを更新しました');
+            } else {
+              // 新しいパターンの追加
+              setPatterns(prevPatterns => [...prevPatterns, updatedPattern]);
+              showSuccess('パターンを追加しました');
+            }
             setShowAddPattern(false);
             setEditingPattern(null);
-            loadPatterns();
           }}
         />
       )}
@@ -207,14 +213,7 @@ const RecurringEventManagementPage: React.FC = () => {
   );
 };
 
-// パターンフォームモーダル（簡易版）
-interface PatternFormModalProps {
-  pattern?: RecurringPattern | null;
-  onClose: () => void;
-  onSave: (pattern: RecurringPattern) => void;
-}
-
-// パターンフォームモーダル（完全版）
+// パターンフォームモーダル
 interface PatternFormModalProps {
   pattern?: RecurringPattern | null;
   onClose: () => void;
@@ -236,6 +235,26 @@ const PatternFormModal: React.FC<PatternFormModalProps> = ({ pattern, onClose, o
     startDate: pattern?.startDate || '2024-01-01',
     isActive: pattern?.isActive ?? true
   });
+
+  // patternが変更された時にフォームデータを更新
+  useEffect(() => {
+    if (pattern) {
+      setFormData({
+        title: pattern.title,
+        description: pattern.description || '',
+        location: pattern.location,
+        startTime: pattern.startTime,
+        endTime: pattern.endTime,
+        eventType: pattern.eventType,
+        patternType: pattern.patternType,
+        dayOfWeek: pattern.dayOfWeek || 1,
+        weekOfMonth: pattern.weekOfMonth || 1,
+        skipHolidays: pattern.skipHolidays,
+        startDate: pattern.startDate,
+        isActive: pattern.isActive
+      });
+    }
+  }, [pattern]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
