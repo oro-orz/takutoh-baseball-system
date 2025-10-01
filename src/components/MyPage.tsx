@@ -72,10 +72,11 @@ const MyPage: React.FC = () => {
         pin: u.pin,
         name: u.name,
         role: u.role as 'admin' | 'coach' | 'player' | 'parent',
+        lineId: u.lineId,
         players: u.players || [],
-        defaultCarCapacity: 0,
-        defaultEquipmentCar: false,
-        defaultUmpire: false
+        defaultCarCapacity: u.defaultCarCapacity || 0,
+        defaultEquipmentCar: u.defaultEquipmentCar || false,
+        defaultUmpire: u.defaultUmpire || false
       }));
       setUsers(convertedUsers);
     } catch (error) {
