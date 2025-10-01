@@ -331,8 +331,16 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
           files: [...(prev.files || []), ...savedFiles.map(f => f.id)]
         }));
         
-        // ファイルが保存された後、試合記録も保存
-        await handleSaveRecord(savedFiles.map(f => f.id));
+        // ファイルのみをデータベースに関連付け（試合記録は保存しない）
+        const existingRecord = gameRecords.find(r => r.eventId === selectedEventId);
+        if (existingRecord) {
+          // 既存の試合記録がある場合のみファイルを関連付け
+          for (const fileId of savedFiles.map(f => f.id)) {
+            await fileService.updateFile(fileId, {
+              game_record_id: existingRecord.id
+            });
+          }
+        }
       } else {
         // イベントが選択されていない場合、最初の試合イベントを選択
         const gameEvents = events.filter(e => e.type !== 'practice');
@@ -342,9 +350,6 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
             ...prev,
             files: [...savedFiles.map(f => f.id)]
           }));
-          
-          // ファイルが保存された後、試合記録も保存
-          await handleSaveRecord(savedFiles.map(f => f.id));
         }
       }
     } catch (error) {
