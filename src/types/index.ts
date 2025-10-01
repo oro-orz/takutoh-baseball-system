@@ -28,6 +28,9 @@ export interface Event {
   eventName?: string; // 大会名
   participants?: ParticipantGroup[]; // 参加部員
   meetingTime?: string; // 集合時間
+  // 定期イベント関連
+  isRecurring?: boolean; // 定期イベントかどうか
+  recurringPatternId?: string; // 定期パターンID
   schedule?: string; // 当日予定
   clothing?: ClothingType[]; // 服装
   preparation?: string; // 準備物

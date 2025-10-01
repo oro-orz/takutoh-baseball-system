@@ -15,6 +15,7 @@ import ExpenseReportPage from './components/ExpenseReportPage';
 import ReimbursementStatusPage from './components/ReimbursementStatusPage';
 import ExpenseManagementPage from './components/ExpenseManagementPage';
 import ReimbursementManagementPage from './components/ReimbursementManagementPage';
+import RecurringEventManagementPage from './components/RecurringEventManagementPage';
 import HamburgerMenu from './components/HamburgerMenu';
 import { initializeSampleData } from './data/sampleData';
 
@@ -82,6 +83,8 @@ const AppContent: React.FC = () => {
         return <ExpenseManagementPage />;
       case 'reimbursement-management':
         return <ReimbursementManagementPage />;
+      case 'recurring-events':
+        return <RecurringEventManagementPage />;
       case 'profile':
         return isAdmin ? <PlayerManagementPage /> : <MyPage />;
       case 'management':
