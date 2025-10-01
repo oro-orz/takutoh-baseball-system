@@ -170,7 +170,6 @@ class RecurringEventService {
       files: [],
       schedule: '',
       clothing: [],
-      equipment: [],
       opponent: '',
       isRecurring: true,
       recurringPatternId: pattern.id
