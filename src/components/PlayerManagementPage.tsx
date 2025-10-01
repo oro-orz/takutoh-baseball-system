@@ -488,45 +488,53 @@ const PlayerManagementPage: React.FC = () => {
     }
   };
 
-  // 学年ごとにユーザーをグループ化してソート
+  // ユーザーをソート（フィルターなしの場合はPIN順、フィルターありの場合は学年別）
   const getGroupedAndSortedUsers = () => {
     const filtered = getFilteredUsers();
     
-    // 各ユーザーの選手を学年別にグループ化
-    const groupedByGrade: { [grade: number]: User[] } = {};
-    
-    filtered.forEach(user => {
-      user.players.forEach(player => {
-        if (!groupedByGrade[player.grade]) {
-          groupedByGrade[player.grade] = [];
-        }
-        // このユーザーがまだこの学年グループに追加されていない場合のみ追加
-        if (!groupedByGrade[player.grade].some(u => u.id === user.id)) {
-          groupedByGrade[player.grade].push(user);
-        }
-      });
-    });
-    
-    // 学年降順でソート（6年→1年）
-    const sortedGrades = Object.keys(groupedByGrade)
-      .map(Number)
-      .sort((a, b) => b - a);
-    
-    const result: { grade: number; users: User[] }[] = [];
-    
-    sortedGrades.forEach(grade => {
-      // 各学年内でユーザーを選手IDでソート
-      const sortedUsers = groupedByGrade[grade].sort((a, b) => {
-        const aPlayer = a.players.find(p => p.grade === grade);
-        const bPlayer = b.players.find(p => p.grade === grade);
-        if (!aPlayer || !bPlayer) return 0;
-        return aPlayer.id.localeCompare(bPlayer.id);
+    if (selectedGrade === 'all') {
+      // 全て表示の場合: PIN順でソート
+      const sortedUsers = [...filtered].sort((a, b) => a.pin.localeCompare(b.pin));
+      return [{ grade: null, users: sortedUsers }];
+    } else {
+      // 学年フィルターありの場合: その学年の選手を持つユーザーのみ、学年別にグループ化
+      const groupedByGrade: { [grade: number]: User[] } = {};
+      
+      filtered.forEach(user => {
+        user.players.forEach(player => {
+          if (player.grade.toString() === selectedGrade) {
+            if (!groupedByGrade[player.grade]) {
+              groupedByGrade[player.grade] = [];
+            }
+            // このユーザーがまだこの学年グループに追加されていない場合のみ追加
+            if (!groupedByGrade[player.grade].some(u => u.id === user.id)) {
+              groupedByGrade[player.grade].push(user);
+            }
+          }
+        });
       });
       
-      result.push({ grade, users: sortedUsers });
-    });
-    
-    return result;
+      // 学年降順でソート（6年→1年）
+      const sortedGrades = Object.keys(groupedByGrade)
+        .map(Number)
+        .sort((a, b) => b - a);
+      
+      const result: { grade: number | null; users: User[] }[] = [];
+      
+      sortedGrades.forEach(grade => {
+        // 各学年内でユーザーを選手IDでソート
+        const sortedUsers = groupedByGrade[grade].sort((a, b) => {
+          const aPlayer = a.players.find(p => p.grade === grade);
+          const bPlayer = b.players.find(p => p.grade === grade);
+          if (!aPlayer || !bPlayer) return 0;
+          return aPlayer.id.localeCompare(bPlayer.id);
+        });
+        
+        result.push({ grade, users: sortedUsers });
+      });
+      
+      return result;
+    }
   };
 
   return (
@@ -574,17 +582,22 @@ const PlayerManagementPage: React.FC = () => {
         })}
       </div>
 
-      {/* ユーザー一覧（学年別アコーディオン） */}
+      {/* ユーザー一覧（アコーディオン） */}
       <div className="space-y-2">
         {getGroupedAndSortedUsers().map(({ grade, users: gradeUsers }) => (
-          <div key={grade}>
-            <h4 className="text-sm font-semibold text-gray-700 mb-2 px-2">
-              {grade}年生
-            </h4>
+          <div key={grade !== null ? grade : 'all'}>
+            {grade !== null && (
+              <h4 className="text-sm font-semibold text-gray-700 mb-2 px-2">
+                {grade}年生
+              </h4>
+            )}
             <div className="space-y-2">
               {gradeUsers.map(user => {
                 const isExpanded = expandedUserId === user.id;
-                const userPlayers = user.players.filter(p => p.grade === grade).sort((a, b) => a.id.localeCompare(b.id));
+                // フィルターありの場合はその学年のみ、なしの場合は全選手
+                const userPlayers = grade !== null 
+                  ? user.players.filter(p => p.grade === grade).sort((a, b) => a.id.localeCompare(b.id))
+                  : user.players.sort((a, b) => a.id.localeCompare(b.id));
                 const playerGrades = [...new Set(user.players.map(p => p.grade))].sort((a, b) => b - a);
                 
                 return (
@@ -644,7 +657,7 @@ const PlayerManagementPage: React.FC = () => {
                                     )}
                                   </div>
                                   <div className="text-xs text-gray-600 mt-0.5">
-                                    ID: {player.id} {player.position && `・${player.position}`}
+                                    {player.grade}年 ・ ID: {player.id} {player.position && `・${player.position}`}
                                   </div>
                                 </div>
                                 <div className="flex space-x-1 flex-shrink-0 ml-2">
