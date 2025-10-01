@@ -12,7 +12,7 @@ export const SAMPLE_USERS: User[] = [];
 
 export const SAMPLE_ADMIN: Admin = {
   id: '94253d2e-becf-475e-b88a-608f9d6543fc', // 実際の管理者UUID
-  pin: '0000', // 実際の管理者PIN
+  pin: '9999', // 管理者PIN（Supabaseダウン時のフォールバック用）
   name: '管理者'
 };
 
