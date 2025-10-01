@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Player } from '../types';
 import { getUsers, saveUsers } from '../utils/storage';
 import { userService } from '../services/userService';
-import { UserPlus, Edit, Trash2, Users, Plus, X } from 'lucide-react';
+import { Edit, Trash2, Users, Plus, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { showSuccess, showError, handleAsyncError } from '../utils/errorHandler';
 
 // 選手フォームコンポーネント
@@ -274,10 +274,10 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ player, onSubmit, onCancel }) =
 
 const PlayerManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string>('');
-  const [showAddPlayer, setShowAddPlayer] = useState(false);
+  const [expandedUserId, setExpandedUserId] = useState<string>('');
+  const [showAddPlayer, setShowAddPlayer] = useState<{ userId: string; userName: string } | null>(null);
   const [showAddUser, setShowAddUser] = useState(false);
-  const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+  const [editingPlayer, setEditingPlayer] = useState<{ userId: string; player: Player } | null>(null);
   const [selectedGrade, setSelectedGrade] = useState<string>('all'); // 学年フィルター
 
   useEffect(() => {
@@ -293,27 +293,20 @@ const PlayerManagementPage: React.FC = () => {
         pin: u.pin,
         name: u.name,
         role: u.role as 'admin' | 'coach' | 'player' | 'parent',
+        lineId: u.lineId,
         players: u.players || [],
-        defaultCarCapacity: 0,
-        defaultEquipmentCar: false,
-        defaultUmpire: false
+        defaultCarCapacity: u.defaultCarCapacity || 0,
+        defaultEquipmentCar: u.defaultEquipmentCar || false,
+        defaultUmpire: u.defaultUmpire || false
       }));
       setUsers(convertedUsers);
-      if (convertedUsers.length > 0) {
-        setSelectedUserId(convertedUsers[0].id);
-      }
     } catch (error) {
       console.error('ユーザー読み込みに失敗しました:', error);
       // フォールバック: LocalStorageから読み込み
       const loadedUsers = getUsers();
       setUsers(loadedUsers);
-      if (loadedUsers.length > 0) {
-        setSelectedUserId(loadedUsers[0].id);
-      }
     }
   };
-
-  const selectedUser = users.find(u => u.id === selectedUserId);
 
   // 学年別フィルター機能
   const getFilteredUsers = () => {
@@ -352,9 +345,6 @@ const PlayerManagementPage: React.FC = () => {
         const updatedUsers = [...users, createdUser];
         setUsers(updatedUsers);
         saveUsers(updatedUsers);
-        
-        // 新しく追加したユーザーを選択
-        setSelectedUserId(createdUser.id);
         return true;
       } catch (error) {
         console.error('ユーザー追加に失敗しました:', error);
@@ -366,7 +356,6 @@ const PlayerManagementPage: React.FC = () => {
         const updatedUsers = [...users, user];
         setUsers(updatedUsers);
         saveUsers(updatedUsers);
-        setSelectedUserId(user.id);
         return true;
       }
     }, '新入部員の追加に失敗しました');
@@ -378,23 +367,26 @@ const PlayerManagementPage: React.FC = () => {
   };
 
   const handleAddPlayer = async (newPlayer: Omit<Player, 'id'>) => {
-    if (!selectedUser) return;
+    if (!showAddPlayer) return;
+    
+    const targetUser = users.find(u => u.id === showAddPlayer.userId);
+    if (!targetUser) return;
 
     const result = await handleAsyncError(async () => {
       const player: Player = {
         ...newPlayer,
-        id: `${selectedUser.id}-${Date.now()}`
+        id: `${targetUser.id}-${Date.now()}`
       };
       const updatedUser = {
-        ...selectedUser,
-        players: [...selectedUser.players, player]
+        ...targetUser,
+        players: [...targetUser.players, player]
       };
       
       try {
-        await userService.updateUser(selectedUser.id, updatedUser);
+        await userService.updateUser(targetUser.id, updatedUser);
         
         const updatedUsers = users.map(u =>
-          u.id === selectedUser.id ? updatedUser : u
+          u.id === targetUser.id ? updatedUser : u
         );
         setUsers(updatedUsers);
         saveUsers(updatedUsers);
@@ -403,7 +395,7 @@ const PlayerManagementPage: React.FC = () => {
         console.error('選手追加に失敗しました:', error);
         // フォールバック: LocalStorageに保存
         const updatedUsers = users.map(u =>
-          u.id === selectedUser.id ? updatedUser : u
+          u.id === targetUser.id ? updatedUser : u
         );
         setUsers(updatedUsers);
         saveUsers(updatedUsers);
@@ -413,26 +405,29 @@ const PlayerManagementPage: React.FC = () => {
 
     if (result) {
       showSuccess('選手を追加しました');
-      setShowAddPlayer(false);
+      setShowAddPlayer(null);
     }
   };
 
   const handleEditPlayer = async (playerId: string, updates: Partial<Player>) => {
-    if (!selectedUser) return;
+    if (!editingPlayer) return;
+    
+    const targetUser = users.find(u => u.id === editingPlayer.userId);
+    if (!targetUser) return;
 
     const result = await handleAsyncError(async () => {
       const updatedUser = {
-        ...selectedUser,
-        players: selectedUser.players.map(p =>
+        ...targetUser,
+        players: targetUser.players.map(p =>
           p.id === playerId ? { ...p, ...updates } : p
         )
       };
       
       try {
-        await userService.updateUser(selectedUser.id, updatedUser);
+        await userService.updateUser(targetUser.id, updatedUser);
         
         const updatedUsers = users.map(u =>
-          u.id === selectedUser.id ? updatedUser : u
+          u.id === targetUser.id ? updatedUser : u
         );
         setUsers(updatedUsers);
         saveUsers(updatedUsers);
@@ -441,7 +436,7 @@ const PlayerManagementPage: React.FC = () => {
         console.error('選手編集に失敗しました:', error);
         // フォールバック: LocalStorageに保存
         const updatedUsers = users.map(u =>
-          u.id === selectedUser.id ? updatedUser : u
+          u.id === targetUser.id ? updatedUser : u
         );
         setUsers(updatedUsers);
         saveUsers(updatedUsers);
@@ -455,21 +450,22 @@ const PlayerManagementPage: React.FC = () => {
     }
   };
 
-  const handleDeletePlayer = async (playerId: string) => {
-    if (!selectedUser) return;
+  const handleDeletePlayer = async (userId: string, playerId: string) => {
+    const targetUser = users.find(u => u.id === userId);
+    if (!targetUser) return;
 
     if (confirm('この選手を削除しますか？')) {
       const result = await handleAsyncError(async () => {
         const updatedUser = {
-          ...selectedUser,
-          players: selectedUser.players.filter(p => p.id !== playerId)
+          ...targetUser,
+          players: targetUser.players.filter(p => p.id !== playerId)
         };
         
         try {
-          await userService.updateUser(selectedUser.id, updatedUser);
+          await userService.updateUser(targetUser.id, updatedUser);
           
           const updatedUsers = users.map(u =>
-            u.id === selectedUser.id ? updatedUser : u
+            u.id === targetUser.id ? updatedUser : u
           );
           setUsers(updatedUsers);
           saveUsers(updatedUsers);
@@ -478,7 +474,7 @@ const PlayerManagementPage: React.FC = () => {
           console.error('選手削除に失敗しました:', error);
           // フォールバック: LocalStorageに保存
           const updatedUsers = users.map(u =>
-            u.id === selectedUser.id ? updatedUser : u
+            u.id === targetUser.id ? updatedUser : u
           );
           setUsers(updatedUsers);
           saveUsers(updatedUsers);
@@ -490,6 +486,47 @@ const PlayerManagementPage: React.FC = () => {
         showSuccess('選手を削除しました');
       }
     }
+  };
+
+  // 学年ごとにユーザーをグループ化してソート
+  const getGroupedAndSortedUsers = () => {
+    const filtered = getFilteredUsers();
+    
+    // 各ユーザーの選手を学年別にグループ化
+    const groupedByGrade: { [grade: number]: User[] } = {};
+    
+    filtered.forEach(user => {
+      user.players.forEach(player => {
+        if (!groupedByGrade[player.grade]) {
+          groupedByGrade[player.grade] = [];
+        }
+        // このユーザーがまだこの学年グループに追加されていない場合のみ追加
+        if (!groupedByGrade[player.grade].some(u => u.id === user.id)) {
+          groupedByGrade[player.grade].push(user);
+        }
+      });
+    });
+    
+    // 学年降順でソート（6年→1年）
+    const sortedGrades = Object.keys(groupedByGrade)
+      .map(Number)
+      .sort((a, b) => b - a);
+    
+    const result: { grade: number; users: User[] }[] = [];
+    
+    sortedGrades.forEach(grade => {
+      // 各学年内でユーザーを選手IDでソート
+      const sortedUsers = groupedByGrade[grade].sort((a, b) => {
+        const aPlayer = a.players.find(p => p.grade === grade);
+        const bPlayer = b.players.find(p => p.grade === grade);
+        if (!aPlayer || !bPlayer) return 0;
+        return aPlayer.id.localeCompare(bPlayer.id);
+      });
+      
+      result.push({ grade, users: sortedUsers });
+    });
+    
+    return result;
   };
 
   return (
@@ -508,10 +545,7 @@ const PlayerManagementPage: React.FC = () => {
       {/* 学年別フィルター */}
       <div className="flex flex-wrap gap-2">
         <button
-          onClick={() => {
-            setSelectedGrade('all');
-            setSelectedUserId(''); // 選手一覧を非表示
-          }}
+          onClick={() => setSelectedGrade('all')}
           className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
             selectedGrade === 'all'
               ? 'bg-primary-500 text-white shadow-sm'
@@ -527,10 +561,7 @@ const PlayerManagementPage: React.FC = () => {
           return (
             <button
               key={grade}
-              onClick={() => {
-                setSelectedGrade(grade);
-                setSelectedUserId(''); // 選手一覧を非表示
-              }}
+              onClick={() => setSelectedGrade(grade)}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                 selectedGrade === grade
                   ? 'bg-primary-500 text-white shadow-sm'
@@ -543,102 +574,117 @@ const PlayerManagementPage: React.FC = () => {
         })}
       </div>
 
-      {/* 保護者選択 */}
-      <div className="card">
-        <h4 className="text-sm font-semibold text-gray-900 mb-3">保護者選択</h4>
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {getFilteredUsers().map((user) => (
-            <button
-              key={user.id}
-              onClick={() => setSelectedUserId(user.id)}
-              className={`p-3 rounded-lg border text-left transition-colors ${
-                selectedUserId === user.id
-                  ? 'border-primary-500 bg-primary-50'
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <div className="text-sm font-medium text-gray-900">{user.name}</div>
-              <div className="text-xs text-gray-600 mt-1">
-                PIN: {user.pin}
-              </div>
-              <div className="text-xs text-gray-500">
-                選手数: {user.players.length}名
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                学年: {user.players.map(p => `${p.grade}年`).join(', ')}
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* ユーザー一覧（学年別アコーディオン） */}
+      <div className="space-y-2">
+        {getGroupedAndSortedUsers().map(({ grade, users: gradeUsers }) => (
+          <div key={grade}>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2 px-2">
+              {grade}年生
+            </h4>
+            <div className="space-y-2">
+              {gradeUsers.map(user => {
+                const isExpanded = expandedUserId === user.id;
+                const userPlayers = user.players.filter(p => p.grade === grade).sort((a, b) => a.id.localeCompare(b.id));
+                const playerGrades = [...new Set(user.players.map(p => p.grade))].sort((a, b) => b - a);
+                
+                return (
+                  <div key={user.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                    {/* ユーザーカード */}
+                    <button
+                      onClick={() => setExpandedUserId(isExpanded ? '' : user.id)}
+                      className="w-full p-3 bg-white hover:bg-gray-50 transition-colors text-left"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-semibold text-gray-900">{user.name}</span>
+                            <span className="text-xs text-gray-500">PIN: {user.pin}</span>
+                          </div>
+                          <div className="flex items-center space-x-3 mt-1">
+                            {user.lineId && (
+                              <span className="text-xs text-blue-600">LINE: {user.lineId}</span>
+                            )}
+                            <span className="text-xs text-gray-600">選手: {user.players.length}名</span>
+                            <span className="text-xs text-gray-600">
+                              学年: {playerGrades.map(g => `${g}年`).join(', ')}
+                            </span>
+                          </div>
+                        </div>
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" />
+                        )}
+                      </div>
+                    </button>
 
-      {selectedUser && (
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="flex items-center space-x-2">
-                <Users className="w-4 h-4 text-primary-600" />
-                <h4 className="text-sm font-semibold text-gray-900">
-                  {selectedUser.name}さんの選手一覧
-                </h4>
-              </div>
-              {selectedUser.lineId && (
-                <p className="text-xs text-gray-600 mt-1 ml-6">
-                  LINE ID: {selectedUser.lineId}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={() => setShowAddPlayer(true)}
-              className="btn-secondary flex items-center space-x-1"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>選手追加</span>
-            </button>
-          </div>
-
-          <div className="space-y-3">
-            {selectedUser.players.map((player) => (
-              <div key={player.id} className="border border-gray-200 rounded-lg p-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h5 className="text-sm font-medium text-gray-900">{player.name}</h5>
-                    {player.hiraganaName && (
-                      <p className="text-xs text-blue-600 font-medium">
-                        {player.hiraganaName}
-                      </p>
+                    {/* 選手一覧（アコーディオン） */}
+                    {isExpanded && (
+                      <div className="border-t border-gray-200 bg-gray-50 p-3 space-y-2">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs font-medium text-gray-600">選手一覧</span>
+                          <button
+                            onClick={() => setShowAddPlayer({ userId: user.id, userName: user.name })}
+                            className="text-xs text-primary-600 hover:text-primary-700 font-medium flex items-center space-x-1"
+                          >
+                            <Plus className="w-3 h-3" />
+                            <span>選手追加</span>
+                          </button>
+                        </div>
+                        
+                        {userPlayers.length > 0 ? (
+                          userPlayers.map(player => (
+                            <div key={player.id} className="bg-white rounded-lg p-2 border border-gray-200">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-sm font-medium text-gray-900">{player.name}</span>
+                                    {player.hiraganaName && (
+                                      <span className="text-xs text-blue-600">({player.hiraganaName})</span>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-600 mt-0.5">
+                                    ID: {player.id} {player.position && `・${player.position}`}
+                                  </div>
+                                </div>
+                                <div className="flex space-x-1 flex-shrink-0 ml-2">
+                                  <button
+                                    onClick={() => setEditingPlayer({ userId: user.id, player })}
+                                    className="p-1.5 text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeletePlayer(user.id, player.id)}
+                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-4 text-gray-400">
+                            <p className="text-xs">この学年の選手はいません</p>
+                          </div>
+                        )}
+                      </div>
                     )}
-                    <p className="text-xs text-gray-600">
-                      {player.grade}年生 {player.position && `・${player.position}`}
-                    </p>
                   </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setEditingPlayer(player)}
-                      className="text-primary-600 hover:text-primary-700"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeletePlayer(player.id)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {selectedUser.players.length === 0 && (
-              <div className="text-center py-6 text-gray-500">
-                <Users className="w-8 h-8 mx-auto mb-3 text-gray-300" />
-                <p className="text-sm">登録された選手がいません</p>
-              </div>
-            )}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        ))}
+        
+        {getFilteredUsers().length === 0 && (
+          <div className="text-center py-12 text-gray-400">
+            <Users className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+            <p className="text-sm">ユーザーが登録されていません</p>
+          </div>
+        )}
+      </div>
 
       {/* 新入部員追加モーダル */}
       {showAddUser && (
@@ -650,18 +696,18 @@ const PlayerManagementPage: React.FC = () => {
       )}
 
       {/* 選手追加モーダル */}
-      {showAddPlayer && selectedUser && (
+      {showAddPlayer && (
         <PlayerForm
           onSubmit={handleAddPlayer}
-          onCancel={() => setShowAddPlayer(false)}
+          onCancel={() => setShowAddPlayer(null)}
         />
       )}
 
       {/* 選手編集モーダル */}
       {editingPlayer && (
         <PlayerForm
-          player={editingPlayer}
-          onSubmit={(updates) => handleEditPlayer(editingPlayer.id, updates)}
+          player={editingPlayer.player}
+          onSubmit={(updates) => handleEditPlayer(editingPlayer.player.id, updates)}
           onCancel={() => setEditingPlayer(null)}
         />
       )}
