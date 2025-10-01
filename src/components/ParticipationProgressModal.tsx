@@ -15,6 +15,7 @@ interface ParticipationProgressModalProps {
 interface PlayerParticipation {
   player: Player;
   parentName: string;
+  parentPin: string;
   participation: Participation | null;
   status: 'participating' | 'not_participating' | 'pending';
 }
@@ -73,6 +74,7 @@ const ParticipationProgressModal: React.FC<ParticipationProgressModalProps> = ({
           result.push({
             player,
             parentName: user.name,
+            parentPin: user.pin,
             participation: participation || null,
             status
           });
@@ -104,17 +106,26 @@ const ParticipationProgressModal: React.FC<ParticipationProgressModalProps> = ({
   const getSortedPlayers = (): PlayerParticipation[] => {
     const filteredPlayers = getFilteredPlayers();
     
+    // 参加状況が全て未記入の場合はPIN昇順、それ以外は参加状況順
+    const hasAnyParticipation = filteredPlayers.some(p => p.status !== 'pending');
+    
     return filteredPlayers.sort((a, b) => {
-      const statusOrder = { 'participating': 0, 'not_participating': 1, 'pending': 2 };
-      const aOrder = statusOrder[a.status];
-      const bOrder = statusOrder[b.status];
-      
-      if (aOrder !== bOrder) {
-        return aOrder - bOrder;
+      if (hasAnyParticipation) {
+        // 参加状況がある場合：参加状況順
+        const statusOrder = { 'participating': 0, 'not_participating': 1, 'pending': 2 };
+        const aOrder = statusOrder[a.status];
+        const bOrder = statusOrder[b.status];
+        
+        if (aOrder !== bOrder) {
+          return aOrder - bOrder;
+        }
+        
+        // 同じ参加状況の場合はPIN順
+        return a.parentPin.localeCompare(b.parentPin);
+      } else {
+        // 参加状況が全て未記入の場合：PIN昇順
+        return a.parentPin.localeCompare(b.parentPin);
       }
-      
-      // 同じ参加状況の場合は学年順
-      return a.player.grade - b.player.grade;
     });
   };
 

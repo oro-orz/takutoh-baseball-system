@@ -36,13 +36,14 @@ const PlayerRosterPage: React.FC = () => {
     return Array.from(grades).sort((a, b) => parseInt(b) - parseInt(a)); // 6年から1年の順
   };
 
-  const getFilteredPlayers = (): Array<Player & { parentName: string }> => {
-    const allPlayers: Array<Player & { parentName: string }> = [];
+  const getFilteredPlayers = (): Array<Player & { parentName: string; parentPin: string }> => {
+    const allPlayers: Array<Player & { parentName: string; parentPin: string }> = [];
     users.forEach(user => {
       user.players.forEach(player => {
         allPlayers.push({
           ...player,
-          parentName: user.name // 保護者名を追加（表示用）
+          parentName: user.name, // 保護者名を追加（表示用）
+          parentPin: user.pin // 保護者PINを追加（ソート用）
         });
       });
     });
@@ -171,7 +172,7 @@ const PlayerRosterPage: React.FC = () => {
                 }
                 groups[grade].push(player);
                 return groups;
-              }, {} as Record<number, Array<Player & { parentName: string }>>);
+              }, {} as Record<number, Array<Player & { parentName: string; parentPin: string }>>);
 
               // 学年順（高い順）でソート
               const sortedGrades = Object.keys(groupedPlayers)
@@ -193,7 +194,7 @@ const PlayerRosterPage: React.FC = () => {
                   {/* その学年の選手一覧 */}
                   <div className="space-y-2">
                     {groupedPlayers[grade]
-                      .sort((a, b) => a.name.localeCompare(b.name, 'ja'))
+                      .sort((a, b) => a.parentPin.localeCompare(b.parentPin))
                       .map((player, index) => (
                         <div 
                           key={`${player.id}-${index}`} 

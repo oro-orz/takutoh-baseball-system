@@ -575,11 +575,18 @@ const PlayerManagementPage: React.FC = () => {
       {selectedUser && (
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <Users className="w-4 h-4 text-primary-600" />
-              <h4 className="text-sm font-semibold text-gray-900">
-                {selectedUser.name}さんの選手一覧
-              </h4>
+            <div>
+              <div className="flex items-center space-x-2">
+                <Users className="w-4 h-4 text-primary-600" />
+                <h4 className="text-sm font-semibold text-gray-900">
+                  {selectedUser.name}さんの選手一覧
+                </h4>
+              </div>
+              {selectedUser.lineId && (
+                <p className="text-xs text-gray-600 mt-1 ml-6">
+                  LINE ID: {selectedUser.lineId}
+                </p>
+              )}
             </div>
             <button
               onClick={() => setShowAddPlayer(true)}
