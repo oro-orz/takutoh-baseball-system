@@ -259,3 +259,24 @@ export interface ExpensePaymentData {
   expenseIds: string[];
   paymentDate: string;
 }
+
+// ===== ギャラリー機能の型定義 =====
+
+// ギャラリー画像
+export interface GalleryImage {
+  id: string;
+  title: string;
+  description?: string;
+  fileName: string;
+  filePath: string;
+  fileSize: number;
+  mimeType: string;
+  width?: number;
+  height?: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
+  // 表示用のURL（Supabase Storageから取得）
+  url?: string;
+}

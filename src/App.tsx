@@ -16,8 +16,11 @@ import ReimbursementStatusPage from './components/ReimbursementStatusPage';
 import ExpenseManagementPage from './components/ExpenseManagementPage';
 import ReimbursementManagementPage from './components/ReimbursementManagementPage';
 import RecurringEventManagementPage from './components/RecurringEventManagementPage';
+import { GalleryPage } from './components/GalleryPage';
 import HamburgerMenu from './components/HamburgerMenu';
 import { initializeSampleData } from './data/sampleData';
+import { GalleryService } from './services/galleryService';
+import { GalleryImage } from './types';
 
 const AppContent: React.FC = () => {
   const { authState, logout } = useAuth();
@@ -26,10 +29,35 @@ const AppContent: React.FC = () => {
     return localStorage.getItem('activeTab') || 'schedule';
   });
   const [showLogoutDialog, setShowLogoutDialog] = React.useState(false);
+  const [showOpeningImage, setShowOpeningImage] = React.useState(false);
+  const [openingImage, setOpeningImage] = React.useState<GalleryImage | null>(null);
 
   // サンプルデータの初期化
   React.useEffect(() => {
     initializeSampleData();
+  }, []);
+
+  // オープニング画像の表示
+  React.useEffect(() => {
+    const showOpening = async () => {
+      try {
+        const randomImage = await GalleryService.getRandomGalleryImage();
+        if (randomImage) {
+          setOpeningImage(randomImage);
+          setShowOpeningImage(true);
+          
+          // 3秒後にオープニング画像を非表示
+          setTimeout(() => {
+            setShowOpeningImage(false);
+          }, 3000);
+        }
+      } catch (error) {
+        console.error('オープニング画像取得エラー:', error);
+      }
+    };
+
+    // アプリ起動時にオープニング画像を表示
+    showOpening();
   }, []);
 
   // 認証されていない場合はログインページを表示
@@ -85,6 +113,8 @@ const AppContent: React.FC = () => {
         return <ReimbursementManagementPage />;
       case 'recurring-events':
         return <RecurringEventManagementPage />;
+      case 'gallery':
+        return <GalleryPage isAdmin={isAdmin} />;
       case 'profile':
         return isAdmin ? <PlayerManagementPage /> : <MyPage />;
       case 'management':
@@ -96,6 +126,25 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative">
+      {/* オープニング画像 */}
+      {showOpeningImage && openingImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+          <div className="relative max-w-sm w-full mx-4">
+            <img
+              src={openingImage.url}
+              alt={openingImage.title}
+              className="w-full h-auto rounded-lg shadow-2xl"
+            />
+            <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-3 rounded-lg">
+              <h3 className="font-semibold text-sm">{openingImage.title}</h3>
+              {openingImage.description && (
+                <p className="text-xs mt-1 opacity-90">{openingImage.description}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ヘッダー */}
       <header className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="px-4">
