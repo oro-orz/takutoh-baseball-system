@@ -31,6 +31,7 @@ const AppContent: React.FC = () => {
   const [showLogoutDialog, setShowLogoutDialog] = React.useState(false);
   const [showOpeningImage, setShowOpeningImage] = React.useState(false);
   const [openingImage, setOpeningImage] = React.useState<GalleryImage | null>(null);
+  const [isClosing, setIsClosing] = React.useState(false);
 
   // サンプルデータの初期化
   React.useEffect(() => {
@@ -46,9 +47,15 @@ const AppContent: React.FC = () => {
           setOpeningImage(randomImage);
           setShowOpeningImage(true);
           
-          // 2.5秒後にオープニング画像を非表示（アニメーション時間を考慮）
+          // 2.5秒後に終了アニメーションを開始
           setTimeout(() => {
-            setShowOpeningImage(false);
+            setIsClosing(true);
+            
+            // 終了アニメーション完了後に非表示
+            setTimeout(() => {
+              setShowOpeningImage(false);
+              setIsClosing(false);
+            }, 600); // fadeOutアニメーションの時間
           }, 2500);
         }
       } catch (error) {
@@ -133,7 +140,9 @@ const AppContent: React.FC = () => {
             <img
               src={openingImage.url}
               alt={openingImage.title}
-              className="w-full h-auto rounded-lg shadow-2xl animate-fade-in"
+              className={`w-full h-auto rounded-lg shadow-2xl ${
+                isClosing ? 'animate-fade-out' : 'animate-fade-in'
+              }`}
             />
           </div>
         </div>

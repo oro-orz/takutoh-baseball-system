@@ -67,6 +67,11 @@
     animation: fadeIn 0.8s ease-in-out;
   }
   
+  /* オープニング画像の終了アニメーション（ズームイン） */
+  .animate-fade-out {
+    animation: fadeOut 0.6s ease-in-out forwards;
+  }
+  
   @keyframes fadeIn {
     0% {
       opacity: 0;
@@ -75,6 +80,17 @@
     100% {
       opacity: 1;
       transform: scale(1);
+    }
+  }
+  
+  @keyframes fadeOut {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.1);
     }
   }
 }
