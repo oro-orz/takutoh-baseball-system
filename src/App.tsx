@@ -100,13 +100,20 @@ const AppContent: React.FC = () => {
       <header className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="px-4">
           <div className="flex justify-between items-center h-14">
-            <div>
-              <h1 className="text-lg font-bold text-gray-900">
-                託麻東少年野球クラブ
-              </h1>
-              <p className="text-xs text-gray-600">
-                {authState.user?.name}さん
-              </p>
+            <div className="flex items-center space-x-3">
+              <img 
+                src="/takuto_logo.png" 
+                alt="託麻東少年野球クラブ" 
+                className="w-8 h-8 object-contain"
+              />
+              <div>
+                <h1 className="text-sm font-semibold text-gray-900">
+                  託麻東少年野球クラブ
+                </h1>
+                <p className="text-xs text-gray-600">
+                  {authState.user?.name}さん
+                </p>
+              </div>
             </div>
             <HamburgerMenu 
               isAdmin={isAdmin}
