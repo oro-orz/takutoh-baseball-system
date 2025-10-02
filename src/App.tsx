@@ -46,10 +46,10 @@ const AppContent: React.FC = () => {
           setOpeningImage(randomImage);
           setShowOpeningImage(true);
           
-          // 3秒後にオープニング画像を非表示
+          // 2.5秒後にオープニング画像を非表示（アニメーション時間を考慮）
           setTimeout(() => {
             setShowOpeningImage(false);
-          }, 3000);
+          }, 2500);
         }
       } catch (error) {
         console.error('オープニング画像取得エラー:', error);
@@ -133,14 +133,8 @@ const AppContent: React.FC = () => {
             <img
               src={openingImage.url}
               alt={openingImage.title}
-              className="w-full h-auto rounded-lg shadow-2xl"
+              className="w-full h-auto rounded-lg shadow-2xl animate-fade-in"
             />
-            <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-50 text-white p-3 rounded-lg">
-              <h3 className="font-semibold text-sm">{openingImage.title}</h3>
-              {openingImage.description && (
-                <p className="text-xs mt-1 opacity-90">{openingImage.description}</p>
-              )}
-            </div>
           </div>
         </div>
       )}
