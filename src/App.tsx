@@ -135,16 +135,14 @@ const AppContent: React.FC = () => {
     <div className="min-h-screen bg-gray-50 max-w-md mx-auto relative">
       {/* オープニング画像 */}
       {showOpeningImage && openingImage && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
-          <div className="relative max-w-sm w-full mx-4">
-            <img
-              src={openingImage.url}
-              alt={openingImage.title}
-              className={`w-full h-auto rounded-lg shadow-2xl ${
-                isClosing ? 'animate-fade-out' : 'animate-fade-in'
-              }`}
-            />
-          </div>
+        <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+          <img
+            src={openingImage.url}
+            alt={openingImage.title}
+            className={`w-full h-full object-cover ${
+              isClosing ? 'animate-fade-out' : 'animate-fade-in'
+            }`}
+          />
         </div>
       )}
 
