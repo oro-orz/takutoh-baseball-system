@@ -559,7 +559,10 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
                             {record.score.our} - {record.score.opponent}
                           </span>
                         ) : (
-                          <span className="text-gray-400">⚪ - ⚪</span>
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                            <Clock className="w-3 h-3 mr-1" />
+                            未記録
+                          </span>
                         )}
                       </div>
                     </div>
@@ -569,16 +572,12 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
                   {!record && (
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
-                          <Clock className="w-3 h-3 mr-1" />
-                          未記録
-                        </span>
+                        {isAdmin && (
+                          <div className="text-xs text-gray-400">
+                            新規作成可能
+                          </div>
+                        )}
                       </div>
-                      {isAdmin && (
-                        <div className="text-xs text-gray-400">
-                          新規作成可能
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
@@ -791,9 +790,39 @@ const GameRecordsPage: React.FC<GameRecordsPageProps> = ({ isAdmin }) => {
                       <div className="text-center py-4 text-gray-500">
                         <Trophy className="w-8 h-8 mx-auto mb-2 text-gray-300" />
                         <p className="text-sm">試合記録がありません</p>
-                        {isAdmin && (
-                          <p className="text-xs mt-1">「編集」ボタンから記録を追加してください</p>
-                        )}
+                        <p className="text-xs mt-1">スコアブック・写真をアップロードできます</p>
+                      </div>
+
+                      {/* ファイルアップロード（全ユーザー向け） */}
+                      <div className="flex justify-center">
+                        <input
+                          type="file"
+                          multiple
+                          accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.heic,.heif"
+                          onChange={(e) => {
+                            const files = e.target.files;
+                            if (files) {
+                              const newFiles = Array.from(files).map(file => ({
+                                id: `file_${Date.now()}_${Math.random()}`,
+                                name: file.name,
+                                size: file.size,
+                                type: file.type,
+                                url: URL.createObjectURL(file),
+                                uploadedAt: new Date().toISOString()
+                              }));
+                              handleFilesUploaded(newFiles);
+                            }
+                          }}
+                          className="hidden"
+                          id="user-file-upload"
+                        />
+                        <label
+                          htmlFor="user-file-upload"
+                          className="flex items-center space-x-1 px-2 py-1 bg-blue-50 text-blue-600 border border-blue-200 rounded text-xs cursor-pointer hover:bg-blue-100"
+                        >
+                          <Upload className="w-3 h-3" />
+                          <span>ファイルを選択</span>
+                        </label>
                       </div>
 
                       {/* 新規記録作成（管理者のみ） */}

@@ -94,6 +94,30 @@ const EventManagementPage: React.FC = () => {
     }
   };
 
+  const getEventTypeTextClass = (type: EventType): string => {
+    switch (type) {
+      case 'practice': return 'text-blue-700';
+      case 'practice_game': return 'text-green-700';
+      case 'official_game': return 'text-red-700';
+      case 'other': return 'text-gray-700';
+      case 'cancelled': return 'text-gray-700';
+      case 'postponed': return 'text-yellow-700';
+      default: return 'text-gray-700';
+    }
+  };
+
+  const getEventTypeInitial = (type: EventType): string => {
+    switch (type) {
+      case 'practice': return '練';
+      case 'practice_game': return '練';
+      case 'official_game': return '公';
+      case 'other': return '他';
+      case 'cancelled': return '中';
+      case 'postponed': return '延';
+      default: return '他';
+    }
+  };
+
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -226,7 +250,7 @@ const EventManagementPage: React.FC = () => {
       description: event.description || '',
       items: event.items || [],
       parking: event.parking || '',
-      eventName: event.eventName || '',
+      eventName: event.eventName || event.title || '', // eventNameがない場合はtitleを使用
       participants: event.participants || [],
       meetingTime: event.meetingTime || '',
       schedule: event.schedule || '',
@@ -398,18 +422,19 @@ const EventManagementPage: React.FC = () => {
 
       {/* フォーム */}
       {showForm && (
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-gray-900">
-              {editingEvent ? 'イベント編集' : '新規イベント追加'}
-            </h3>
-            <button
-              onClick={resetForm}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-medium text-gray-900">
+                {editingEvent ? 'イベント編集' : '新規イベント追加'}
+              </h3>
+              <button
+                onClick={resetForm}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* 1. 日付 */}
@@ -719,6 +744,7 @@ const EventManagementPage: React.FC = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
       )}
 
@@ -736,10 +762,10 @@ const EventManagementPage: React.FC = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEventTypeClass(event.type)}`}>
-                      {getEventTypeLabel(event.type)}
-                    </span>
-                    <h3 className="text-sm font-medium text-gray-900">{event.eventName || event.title}</h3>
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs flex-shrink-0 ${getEventTypeClass(event.type)} ${getEventTypeTextClass(event.type)}`}>
+                      {getEventTypeInitial(event.type)}
+                    </div>
+                    <h3 className="text-sm font-medium text-gray-900 leading-tight">{event.eventName || event.title}</h3>
                   </div>
                   <div className="text-xs text-gray-600 space-y-1">
                     <div className="flex items-center space-x-1">

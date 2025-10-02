@@ -178,7 +178,7 @@ const SchedulePage: React.FC = () => {
             onClick={() => handleEventClick(event)}
           >
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-gray-900 flex-1">
+              <h3 className="text-sm font-semibold text-gray-900 flex-1 pr-3">
                 {event.eventName || event.title}
               </h3>
               <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getEventTypeClass(event.type)}`}>
