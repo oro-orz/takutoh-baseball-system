@@ -168,7 +168,8 @@ const ReimbursementManagementPage: React.FC = () => {
             type="month"
             value={selectedMonth}
             onChange={(e) => handleMonthChange(e.target.value)}
-            className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+            className="px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500 appearance-none"
+            style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
           />
         </div>
         

@@ -434,7 +434,8 @@ const EventManagementPage: React.FC = () => {
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded text-sm appearance-none"
+                style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
                 required
               />
             </div>

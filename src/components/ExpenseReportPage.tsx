@@ -162,7 +162,8 @@ const ExpenseReportPage: React.FC = () => {
             type="date"
             value={formData.expenseDate}
             onChange={(e) => setFormData(prev => ({ ...prev, expenseDate: e.target.value }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 appearance-none"
+            style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
             required
           />
         </div>
