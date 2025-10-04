@@ -57,6 +57,10 @@ const SchedulePage: React.FC = () => {
         return '公式戦';
       case 'other':
         return 'その他';
+      case 'cancelled':
+        return '中止';
+      case 'postponed':
+        return '延期';
       default:
         return 'その他';
     }
@@ -72,6 +76,10 @@ const SchedulePage: React.FC = () => {
         return 'event-type-official_game';
       case 'other':
         return 'event-type-other';
+      case 'cancelled':
+        return 'event-type-cancelled';
+      case 'postponed':
+        return 'event-type-postponed';
       default:
         return 'event-type-other';
     }

@@ -64,7 +64,9 @@ const RecurringEventManagementPage: React.FC = () => {
       'practice': '練習',
       'practice_game': '練習試合',
       'official_game': '公式戦',
-      'other': 'その他'
+      'other': 'その他',
+      'cancelled': '中止',
+      'postponed': '延期'
     };
     return labels[type as keyof typeof labels] || type;
   };

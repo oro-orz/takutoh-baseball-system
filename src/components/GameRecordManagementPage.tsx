@@ -63,6 +63,8 @@ const GameRecordManagementPage: React.FC = () => {
       case 'practice_game': return '練習試合';
       case 'official_game': return '公式戦';
       case 'other': return 'その他';
+      case 'cancelled': return '中止';
+      case 'postponed': return '延期';
       default: return type;
     }
   };
