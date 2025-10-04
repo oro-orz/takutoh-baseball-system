@@ -291,6 +291,17 @@ const ParticipationProgressPage: React.FC = () => {
                   {formatDate(event.date)} {event.startTime}
                 </div>
                 <div className="text-xs text-gray-500">{event.location}</div>
+                {/* 延期・中止理由の表示 */}
+                {(event.type === 'cancelled' || event.type === 'postponed') && event.cancellationReason && (
+                  <div className="text-xs mt-1">
+                    <span className={`font-medium ${event.type === 'cancelled' ? 'text-red-600' : 'text-yellow-600'}`}>
+                      {event.type === 'cancelled' ? '中止理由' : '延期理由'}: 
+                    </span>
+                    <span className={`${event.type === 'cancelled' ? 'text-red-600' : 'text-yellow-600'}`}>
+                      {event.cancellationReason}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex items-center space-x-2">
                 <span className="text-xs text-gray-500">参加状況確認</span>

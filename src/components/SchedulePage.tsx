@@ -3,7 +3,7 @@ import { Event, EventType } from '../types';
 import { getEvents } from '../utils/storage';
 import { eventService } from '../services/eventService';
 import { fileService } from '../services/fileService';
-import { Calendar, Clock, MapPin, Loader2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, Loader2, AlertCircle } from 'lucide-react';
 import EventDetailModal from './EventDetailModal';
 
 const SchedulePage: React.FC = () => {
@@ -210,6 +210,15 @@ const SchedulePage: React.FC = () => {
                 <MapPin className="w-3 h-3" />
                 <span className="truncate">{event.location}</span>
               </div>
+              {/* 延期・中止理由の表示 */}
+              {(event.type === 'cancelled' || event.type === 'postponed') && event.cancellationReason && (
+                <div className="flex items-start space-x-1">
+                  <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                  <span className={`text-xs ${event.type === 'cancelled' ? 'text-red-600' : 'text-yellow-600'}`}>
+                    {event.type === 'cancelled' ? '中止理由' : '延期理由'}: {event.cancellationReason}
+                  </span>
+                </div>
+              )}
               {event.participants && event.participants.length > 0 && (
                 <div className="flex items-center space-x-1">
                   <span className="text-xs text-blue-600">

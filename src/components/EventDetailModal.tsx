@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Calendar, Clock, MapPin, FileText, Download, Eye, Users } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, FileText, Download, Eye, Users, AlertCircle } from 'lucide-react';
 import { Event } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import ParticipationForm, { ParticipationFormRef } from './ParticipationForm';
@@ -180,6 +180,20 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, isOpen, onCl
                 <MapPin className="w-4 h-4 text-gray-400" />
                 <span className="text-sm text-gray-900">{event.location}</span>
               </div>
+              {/* 延期・中止理由の表示 */}
+              {(event.type === 'cancelled' || event.type === 'postponed') && event.cancellationReason && (
+                <div className="flex items-start space-x-3">
+                  <AlertCircle className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <span className={`text-sm font-medium ${event.type === 'cancelled' ? 'text-red-600' : 'text-yellow-600'}`}>
+                      {event.type === 'cancelled' ? '中止理由' : '延期理由'}
+                    </span>
+                    <p className={`text-sm mt-1 ${event.type === 'cancelled' ? 'text-red-600' : 'text-yellow-600'}`}>
+                      {event.cancellationReason}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
