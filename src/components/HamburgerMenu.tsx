@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Users, Banknote, User, LogOut, Settings, Calendar, Image } from 'lucide-react';
+import { Menu, X, Users, Banknote, User, LogOut, Settings, Calendar, Image, ClipboardList } from 'lucide-react';
 
 interface MenuItem {
   id: string;
@@ -22,6 +22,8 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isAdmin, onNavigate, onLo
         { id: 'profile', label: '選手管理', icon: Users, onClick: () => onNavigate('profile') },
         { id: 'management', label: 'イベント管理', icon: Settings, onClick: () => onNavigate('management') },
         { id: 'recurring-events', label: '定期イベント管理', icon: Calendar, onClick: () => onNavigate('recurring-events') },
+        { id: 'survey-management', label: 'アンケート管理', icon: ClipboardList, onClick: () => onNavigate('survey-management') },
+        { id: 'surveys', label: 'アンケート一覧', icon: ClipboardList, onClick: () => onNavigate('surveys') },
         { id: 'gallery', label: 'ギャラリー', icon: Image, onClick: () => onNavigate('gallery') },
         { id: 'expense-management', label: '立替金管理', icon: Banknote, onClick: () => onNavigate('expense-management') },
         { id: 'reimbursement-management', label: '会計管理', icon: Banknote, onClick: () => onNavigate('reimbursement-management') },
@@ -29,6 +31,7 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isAdmin, onNavigate, onLo
       ]
     : [
         { id: 'roster', label: '選手名簿', icon: Users, onClick: () => onNavigate('roster') },
+        { id: 'surveys', label: 'アンケート', icon: ClipboardList, onClick: () => onNavigate('surveys') },
         { id: 'gallery', label: 'ギャラリー', icon: Image, onClick: () => onNavigate('gallery') },
         { id: 'expense-report', label: '会計報告', icon: Banknote, onClick: () => onNavigate('expense-report') },
         { id: 'reimbursement-status', label: '立替金状況', icon: Banknote, onClick: () => onNavigate('reimbursement-status') },

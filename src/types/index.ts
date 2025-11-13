@@ -1,6 +1,37 @@
 // イベントタイプ
 export type EventType = 'practice' | 'practice_game' | 'official_game' | 'other' | 'cancelled' | 'postponed';
 
+// アンケート
+export type SurveyQuestionType = 'single_choice' | 'multiple_choice' | 'text';
+
+export interface Survey {
+  id: string;
+  title: string;
+  description?: string;
+  createdBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SurveyQuestion {
+  id: string;
+  surveyId: string;
+  questionText: string;
+  questionType: SurveyQuestionType;
+  options?: string[];
+  sortOrder: number;
+}
+
+export type SurveyAnswerValue = string | string[] | null;
+
+export interface SurveyResponse {
+  id: string;
+  surveyId: string;
+  respondentId?: string;
+  answers: Record<string, SurveyAnswerValue>;
+  submittedAt: string;
+}
+
 // 参加部員の選択肢
 export type ParticipantGroup = 'all' | '6th' | '5th' | '4th' | '4th_below' | '3rd' | '3rd_below';
 

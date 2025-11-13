@@ -1,6 +1,6 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Calendar, UserCheck, Trophy, LogOut } from 'lucide-react';
+import { Calendar, UserCheck, Trophy, LogOut, ClipboardList } from 'lucide-react';
 import LoginPage from './components/LoginPage';
 import SchedulePage from './components/SchedulePage';
 import ParticipationPage from './components/ParticipationPage';
@@ -18,6 +18,8 @@ import ReimbursementManagementPage from './components/ReimbursementManagementPag
 import RecurringEventManagementPage from './components/RecurringEventManagementPage';
 import { GalleryPage } from './components/GalleryPage';
 import HamburgerMenu from './components/HamburgerMenu';
+import SurveyPage from './components/SurveyPage';
+import SurveyManagementPage from './components/SurveyManagementPage';
 import { initializeSampleData } from './data/sampleData';
 import { GalleryService } from './services/galleryService';
 import { GalleryImage } from './types';
@@ -79,11 +81,13 @@ const AppContent: React.FC = () => {
     ? [
         { id: 'schedule', label: '予定', icon: Calendar },
         { id: 'progress', label: '進捗確認', icon: UserCheck },
+        { id: 'surveys', label: 'アンケート', icon: ClipboardList },
         { id: 'admin', label: '試合記録', icon: Trophy },
       ]
     : [
         { id: 'schedule', label: '予定', icon: Calendar },
         { id: 'participation', label: '参加入力', icon: UserCheck },
+        { id: 'surveys', label: 'アンケート', icon: ClipboardList },
         { id: 'game-records', label: '試合記録', icon: Trophy },
       ];
 
@@ -110,6 +114,8 @@ const AppContent: React.FC = () => {
         return <GameRecordsPage isAdmin={isAdmin} />;
       case 'game-records':
         return <GameRecordsPage isAdmin={isAdmin} />;
+      case 'surveys':
+        return <SurveyPage />;
       case 'expense-report':
         return <ExpenseReportPage />;
       case 'reimbursement-status':
@@ -126,6 +132,8 @@ const AppContent: React.FC = () => {
         return isAdmin ? <PlayerManagementPage /> : <MyPage />;
       case 'management':
         return <EventManagementPage />;
+      case 'survey-management':
+        return <SurveyManagementPage />;
       default:
         return <SchedulePage />;
     }

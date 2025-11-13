@@ -7,9 +7,11 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      minify: false,
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        mode: 'development'
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
