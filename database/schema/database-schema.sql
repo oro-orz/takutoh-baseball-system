@@ -88,6 +88,7 @@ CREATE TABLE files (
   url TEXT NOT NULL,
   event_id UUID REFERENCES events(id) ON DELETE CASCADE,
   game_record_id UUID REFERENCES game_records(id) ON DELETE CASCADE,
+  survey_id UUID REFERENCES surveys(id) ON DELETE CASCADE,
   uploaded_by UUID REFERENCES users(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -101,6 +102,7 @@ CREATE INDEX idx_participations_player_id ON participations(player_id);
 CREATE INDEX idx_game_records_event_id ON game_records(event_id);
 CREATE INDEX idx_files_event_id ON files(event_id);
 CREATE INDEX idx_files_game_record_id ON files(game_record_id);
+CREATE INDEX idx_files_survey_id ON files(survey_id);
 
 -- RLS (Row Level Security) の設定（テスト用に無効化）
 -- ALTER TABLE users ENABLE ROW LEVEL SECURITY;

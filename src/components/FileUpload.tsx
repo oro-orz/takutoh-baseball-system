@@ -8,6 +8,10 @@ interface FileUploadAreaProps {
   maxSize?: number; // MB
   multiple?: boolean;
   className?: string;
+  eventId?: string;
+  gameRecordId?: string;
+  surveyId?: string;
+  uploadedBy?: string;
 }
 
 const FileUploadArea: React.FC<FileUploadAreaProps> = ({
@@ -15,7 +19,11 @@ const FileUploadArea: React.FC<FileUploadAreaProps> = ({
   allowedTypes = ['.pdf', '.jpg', '.jpeg', '.png'],
   maxSize = 10, // 10MB
   multiple = false,
-  className = ''
+  className = '',
+  eventId,
+  gameRecordId,
+  surveyId,
+  uploadedBy
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -68,7 +76,13 @@ const FileUploadArea: React.FC<FileUploadAreaProps> = ({
 
       try {
         setIsUploading(true);
-        const uploadedFile = await uploadFile(file, undefined, undefined, undefined);
+        const uploadedFile = await uploadFile(
+          file,
+          eventId,
+          gameRecordId,
+          uploadedBy,
+          surveyId
+        );
         onFileUploaded(uploadedFile);
       } catch (err) {
         setError('ファイルのアップロードに失敗しました');

@@ -8,6 +8,9 @@ export interface UploadedFile {
   type: string;
   url: string;
   uploadedAt: string;
+  eventId?: string;
+  gameRecordId?: string;
+  surveyId?: string;
 }
 
 // ファイルをBase64に変換
@@ -40,7 +43,13 @@ export const isValidFileType = (file: File, allowedTypes: string[]): boolean => 
 };
 
 // ファイルアップロード処理
-export const uploadFile = async (file: File, eventId?: string, gameRecordId?: string, userId?: string): Promise<UploadedFile> => {
+export const uploadFile = async (
+  file: File,
+  eventId?: string,
+  gameRecordId?: string,
+  userId?: string,
+  surveyId?: string
+): Promise<UploadedFile> => {
   try {
     // ファイルをBase64に変換
     const base64 = await fileToBase64(file);
@@ -53,6 +62,7 @@ export const uploadFile = async (file: File, eventId?: string, gameRecordId?: st
       url: base64,
       event_id: eventId,
       game_record_id: gameRecordId,
+      survey_id: surveyId,
       uploaded_by: userId || undefined // ユーザーIDが無効な場合はundefined
     });
 
@@ -63,7 +73,10 @@ export const uploadFile = async (file: File, eventId?: string, gameRecordId?: st
       size: fileRecord.size,
       type: fileRecord.type,
       url: fileRecord.url,
-      uploadedAt: fileRecord.created_at
+      uploadedAt: fileRecord.created_at,
+      eventId: fileRecord.event_id ?? undefined,
+      gameRecordId: fileRecord.game_record_id ?? undefined,
+      surveyId: fileRecord.survey_id ?? undefined
     };
 
     return uploadedFile;
@@ -77,7 +90,10 @@ export const uploadFile = async (file: File, eventId?: string, gameRecordId?: st
       size: file.size,
       type: file.type,
       url: base64,
-      uploadedAt: new Date().toISOString()
+      uploadedAt: new Date().toISOString(),
+      eventId,
+      gameRecordId,
+      surveyId
     };
 
     // LocalStorageに保存
@@ -100,10 +116,16 @@ export const getStoredFiles = (): UploadedFile[] => {
 };
 
 // Supabaseからファイルを取得
-export const getFiles = async (eventId?: string, gameRecordId?: string): Promise<UploadedFile[]> => {
+export const getFiles = async (
+  eventId?: string,
+  gameRecordId?: string,
+  surveyId?: string
+): Promise<UploadedFile[]> => {
   try {
     let fileRecords;
-    if (eventId) {
+    if (surveyId) {
+      fileRecords = await fileService.getFilesBySurvey(surveyId);
+    } else if (eventId) {
       fileRecords = await fileService.getFilesByEvent(eventId);
     } else if (gameRecordId) {
       fileRecords = await fileService.getFilesByGameRecord(gameRecordId);
@@ -118,12 +140,25 @@ export const getFiles = async (eventId?: string, gameRecordId?: string): Promise
       size: f.size,
       type: f.type,
       url: f.url,
-      uploadedAt: f.created_at
+      uploadedAt: f.created_at,
+      eventId: f.event_id ?? undefined,
+      gameRecordId: f.game_record_id ?? undefined,
+      surveyId: f.survey_id ?? undefined
     }));
   } catch (error) {
       console.error('ファイル読み込みに失敗しました:', error);
     // フォールバック: LocalStorageから読み込み
-    return getStoredFiles();
+    const stored = getStoredFiles();
+    if (surveyId) {
+      return stored.filter(file => file.surveyId === surveyId);
+    }
+    if (eventId) {
+      return stored.filter(file => file.eventId === eventId);
+    }
+    if (gameRecordId) {
+      return stored.filter(file => file.gameRecordId === gameRecordId);
+    }
+    return stored;
   }
 };
 

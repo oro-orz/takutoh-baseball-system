@@ -23,7 +23,6 @@ const HamburgerMenu: React.FC<HamburgerMenuProps> = ({ isAdmin, onNavigate, onLo
         { id: 'management', label: 'イベント管理', icon: Settings, onClick: () => onNavigate('management') },
         { id: 'recurring-events', label: '定期イベント管理', icon: Calendar, onClick: () => onNavigate('recurring-events') },
         { id: 'survey-management', label: 'アンケート管理', icon: ClipboardList, onClick: () => onNavigate('survey-management') },
-        { id: 'surveys', label: 'アンケート一覧', icon: ClipboardList, onClick: () => onNavigate('surveys') },
         { id: 'gallery', label: 'ギャラリー', icon: Image, onClick: () => onNavigate('gallery') },
         { id: 'expense-management', label: '立替金管理', icon: Banknote, onClick: () => onNavigate('expense-management') },
         { id: 'reimbursement-management', label: '会計管理', icon: Banknote, onClick: () => onNavigate('reimbursement-management') },

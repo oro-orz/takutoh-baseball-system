@@ -8,6 +8,7 @@ export interface FileRecord {
   url: string
   event_id?: string
   game_record_id?: string
+  survey_id?: string
   uploaded_by?: string
   created_at: string
   updated_at: string
@@ -55,6 +56,21 @@ export const fileService = {
 
     if (error) {
       console.error('試合記録別ファイルの取得に失敗しました:', error)
+      throw error
+    }
+
+    return data || []
+  },
+
+  async getFilesBySurvey(surveyId: string): Promise<FileRecord[]> {
+    const { data, error } = await supabase
+      .from('files')
+      .select('*')
+      .eq('survey_id', surveyId)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('アンケート別ファイルの取得に失敗しました:', error)
       throw error
     }
 

@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Loader2, ChevronDown, ClipboardCheck } from 'lucide-react'
+import { Loader2, ChevronDown, ClipboardCheck, X, FileText } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { Survey, SurveyQuestion, SurveyResponse, SurveyAnswerValue } from '../types'
 import { surveyService } from '../services/surveyService'
 import { handleAsyncError, showSuccess } from '../utils/errorHandler'
 import { userService } from '../services/userService'
+import { UploadedFile, getFiles } from '../utils/fileUpload'
 
 interface FormState {
   [questionId: string]: SurveyAnswerValue
@@ -22,6 +23,9 @@ const SurveyPage: React.FC = () => {
   const [userNameMap, setUserNameMap] = useState<Record<string, string>>({})
   const [showArchive, setShowArchive] = useState(false)
   const [showResponses, setShowResponses] = useState(false)
+  const [attachments, setAttachments] = useState<UploadedFile[]>([])
+  const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null)
+  const [editingResponseId, setEditingResponseId] = useState<string | null>(null)
 
   const isSurveyArchived = (survey: Survey) => {
     if (!survey.dueDate) return false
@@ -103,11 +107,15 @@ const SurveyPage: React.FC = () => {
         setQuestions(loadedQuestions)
         setResponses(loadedResponses)
 
+        const files = await getFiles(undefined, undefined, selectedSurveyId)
+        setAttachments(files)
+
         // 自分の既存回答があればフォームに反映
         const myResponse = loadedResponses.find(
           (response) => response.respondentId === authState.user?.id
         )
         setFormState(myResponse?.answers ?? {})
+        setEditingResponseId(null)
       }, 'アンケート詳細の取得に失敗しました')
     }
 
@@ -118,9 +126,13 @@ const SurveyPage: React.FC = () => {
     setSelectedSurveyId(surveyId)
     setFormState({})
     setShowResponses(false)
+    setAttachments([])
+  setEditingResponseId(null)
     const targetSurvey = surveys.find((survey) => survey.id === surveyId)
     if (targetSurvey && isSurveyArchived(targetSurvey)) {
       setShowArchive(true)
+    } else {
+      setShowArchive(false)
     }
   }
 
@@ -134,6 +146,7 @@ const SurveyPage: React.FC = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     if (!selectedSurveyId) return
+    const wasEditing = editingResponseId !== null || !!myResponse
 
     setIsSubmitting(true)
     const result = await handleAsyncError(async () => {
@@ -143,9 +156,14 @@ const SurveyPage: React.FC = () => {
         answers: formState,
       })
 
-      showSuccess('回答を送信しました')
       const updatedResponses = await surveyService.getSurveyResponses(selectedSurveyId)
       setResponses(updatedResponses)
+      const latestMyResponse = updatedResponses.find(
+        (response) => response.respondentId === authState.user?.id
+      )
+      setEditingResponseId(null)
+      setFormState(latestMyResponse?.answers ?? {})
+      showSuccess(wasEditing ? '回答を更新しました' : '回答を送信しました')
     }, '回答の送信に失敗しました')
 
     if (result !== null) {
@@ -160,7 +178,13 @@ const SurveyPage: React.FC = () => {
     [surveys, selectedSurveyId]
   )
 
-  const { activeSurveys, archivedSurveys } = useMemo(() => {
+const myResponse = useMemo(
+  () => responses.find((response) => response.respondentId === authState.user?.id) ?? null,
+  [responses, authState.user?.id]
+)
+const isEditing = editingResponseId !== null
+
+const { activeSurveys, archivedSurveys } = useMemo(() => {
     const active: Survey[] = []
     const archived: Survey[] = []
     surveys.forEach((survey) => {
@@ -174,6 +198,23 @@ const SurveyPage: React.FC = () => {
   }, [surveys])
 
   const hasQuestions = questions.length > 0
+
+const handleEditResponse = (response: SurveyResponse) => {
+  if (response.respondentId !== authState.user?.id) return
+  setFormState(response.answers)
+  setEditingResponseId(response.id)
+  setShowResponses(false)
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+const handleCancelEdit = () => {
+  if (myResponse) {
+    setFormState(myResponse.answers)
+  } else {
+    setFormState({})
+  }
+  setEditingResponseId(null)
+}
 
   return (
     <div className="space-y-5">
@@ -254,21 +295,21 @@ const SurveyPage: React.FC = () => {
       {selectedSurvey && (
         <div className="space-y-3">
           <div className="bg-white rounded-xl shadow-sm p-5 space-y-5">
-            <div className="space-y-2">
+            <div className="space-y-3">
+              {selectedSurvey.dueDate && (
+                <div
+                  className={`inline-flex items-center space-x-2 px-3 py-2 rounded-lg border text-sm font-medium ${
+                    isSurveyArchived(selectedSurvey)
+                      ? 'bg-red-50 border-red-200 text-red-700'
+                      : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                  }`}
+                >
+                  <span>回答期限</span>
+                  <span className="font-semibold">{formatDueDate(selectedSurvey.dueDate)}</span>
+                </div>
+              )}
               <h3 className="text-base font-semibold text-gray-900">{selectedSurvey.title}</h3>
               <div className="flex items-center space-x-2 text-xs">
-                {selectedSurvey.dueDate && (
-                  <div
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg border text-sm font-medium ${
-                      isSurveyArchived(selectedSurvey)
-                        ? 'bg-red-50 border-red-200 text-red-700'
-                        : 'bg-yellow-50 border-yellow-200 text-yellow-800'
-                    }`}
-                  >
-                    <span>期限</span>
-                    <span className="font-semibold">{formatDueDate(selectedSurvey.dueDate)}</span>
-                  </div>
-                )}
                 {isSurveyArchived(selectedSurvey) && (
                   <span className="inline-flex items-center px-2 py-1 rounded-full bg-gray-200 text-gray-600 font-medium">
                     アーカイブ
@@ -280,8 +321,85 @@ const SurveyPage: React.FC = () => {
               )}
             </div>
 
+            {attachments.length > 0 && (
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-gray-900">添付ファイル</h4>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {attachments.map((file) => {
+                    if (file.type.startsWith('image/')) {
+                      return (
+                        <button
+                          type="button"
+                          key={file.id}
+                          onClick={() => setPreviewFile(file)}
+                          className="group rounded-lg border border-gray-200 overflow-hidden bg-white hover:border-primary-400 transition-colors"
+                        >
+                          <img
+                            src={file.url}
+                            alt={file.name}
+                            className="w-full h-36 object-cover"
+                          />
+                          <div className="px-3 py-2 text-xs text-gray-600 border-t border-gray-200 text-left group-hover:text-primary-600">
+                            {file.name}
+                          </div>
+                        </button>
+                      )
+                    }
+
+                    if (file.type === 'application/pdf') {
+                      return (
+                        <button
+                          type="button"
+                          key={file.id}
+                          onClick={() => setPreviewFile(file)}
+                          className="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-200 bg-white hover:border-primary-400 transition-colors text-left"
+                        >
+                          <span className="flex items-center space-x-2 text-sm text-gray-700">
+                            <FileText className="w-4 h-4 text-primary-600" />
+                            <span>{file.name}</span>
+                          </span>
+                          <span className="text-xs text-primary-600">プレビュー</span>
+                        </button>
+                      )
+                    }
+
+                    return (
+                      <a
+                        key={file.id}
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-200 bg-white hover:border-primary-400 transition-colors"
+                      >
+                        <span className="text-sm text-gray-700">{file.name}</span>
+                        <span className="text-xs text-primary-600">ファイルを開く</span>
+                      </a>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <h4 className="text-sm font-medium text-gray-900">回答フォーム</h4>
+              {isEditing && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg px-3 py-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <span>
+                      {myResponse
+                        ? '保存済みの回答を編集中です。変更しない場合は「編集しない」を押してください。'
+                        : '回答を編集中です。変更しない場合は「編集しない」を押してください。'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      className="inline-flex items-center justify-center px-3 py-1 rounded-md border border-red-300 bg-white text-red-600 hover:bg-red-50 font-medium"
+                    >
+                      編集しない
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-4 bg-gray-50 border border-gray-100 rounded-lg p-4">
                 {!hasQuestions && (
@@ -379,6 +497,8 @@ const SurveyPage: React.FC = () => {
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     送信中...
                   </>
+                ) : isEditing ? (
+                  '回答を更新'
                 ) : (
                   '回答を送信'
                 )}
@@ -397,8 +517,17 @@ const SurveyPage: React.FC = () => {
               <div className="space-y-4">
                 {responses.map((response) => (
                   <div key={response.id} className="border border-gray-200 rounded-lg p-3 text-sm bg-gray-50">
-                    <div className="text-gray-500 mb-2">
-                      回答者: {response.respondentId ? userNameMap[response.respondentId] ?? '名前不明' : '匿名'} / {new Date(response.submittedAt).toLocaleString('ja-JP')}
+                    <div className="text-gray-500 mb-2 text-sm">
+                      <span className="font-medium text-gray-700">{response.respondentId ? userNameMap[response.respondentId] ?? '名前不明' : '匿名'}</span>
+                      <span className="ml-2 text-xs text-gray-500">
+                        {new Date(response.submittedAt).toLocaleString('ja-JP', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
                     </div>
                     <div className="space-y-2">
                       {questions.map((question) => {
@@ -419,11 +548,65 @@ const SurveyPage: React.FC = () => {
                         )
                       })}
                     </div>
+                    {response.respondentId === authState.user?.id && (
+                      <div className="flex justify-end mt-3">
+                        <button
+                          type="button"
+                          onClick={() => handleEditResponse(response)}
+                          className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+                        >
+                          回答を編集
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
           </AccordionSection>
+        </div>
+      )}
+      {previewFile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-6">
+          <div className="relative w-full max-w-4xl bg-white rounded-xl shadow-xl max-h-[90vh] overflow-hidden flex flex-col">
+            <button
+              type="button"
+              onClick={() => setPreviewFile(null)}
+              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="px-5 pt-5 pb-2 border-b border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-900">{previewFile.name}</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                {new Date(previewFile.uploadedAt).toLocaleString('ja-JP')}
+              </p>
+            </div>
+            <div className="flex-1 bg-gray-50 flex items-center justify-center p-4 overflow-auto">
+              {previewFile.type.startsWith('image/') ? (
+                <img
+                  src={previewFile.url}
+                  alt={previewFile.name}
+                  className="max-h-full max-w-full object-contain rounded-lg shadow"
+                />
+              ) : previewFile.type === 'application/pdf' ? (
+                <iframe
+                  src={previewFile.url}
+                  title={previewFile.name}
+                  className="w-full h-[70vh] rounded-lg border border-gray-200"
+                />
+              ) : (
+                <a
+                  href={previewFile.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary-600 underline"
+                >
+                  ファイルを開く
+                </a>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
