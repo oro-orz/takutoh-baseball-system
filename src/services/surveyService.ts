@@ -5,6 +5,7 @@ interface SurveyInsert {
   title: string
   description?: string
   created_by?: string | null
+  due_date?: string | null
 }
 
 interface QuestionInsert {
@@ -25,6 +26,7 @@ const mapSurvey = (data: any): Survey => ({
   id: data.id,
   title: data.title,
   description: data.description ?? undefined,
+  dueDate: data.due_date ?? undefined,
   createdBy: data.created_by ?? undefined,
   createdAt: data.created_at,
   updatedAt: data.updated_at,

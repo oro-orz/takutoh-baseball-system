@@ -23,6 +23,7 @@ const SurveyManagementPage: React.FC = () => {
   const [surveyForm, setSurveyForm] = useState({
     title: '',
     description: '',
+    dueDate: '',
   })
 
   const [questionForm, setQuestionForm] = useState({
@@ -78,10 +79,11 @@ const SurveyManagementPage: React.FC = () => {
         title: surveyForm.title.trim(),
         description: surveyForm.description.trim() || undefined,
         created_by: authState.user?.id ?? undefined,
+        due_date: surveyForm.dueDate ? new Date(surveyForm.dueDate).toISOString() : null,
       })
 
       showSuccess('アンケートを作成しました')
-      setSurveyForm({ title: '', description: '' })
+      setSurveyForm({ title: '', description: '', dueDate: '' })
       await loadSurveys()
       setSelectedSurveyId(newSurvey.id)
     }, 'アンケートの作成に失敗しました')
@@ -158,6 +160,16 @@ const SurveyManagementPage: React.FC = () => {
             placeholder="目的や締切などを記載できます"
           />
         </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700">回答期限（任意）</label>
+          <input
+            type="date"
+            value={surveyForm.dueDate}
+            onChange={(event) => setSurveyForm((prev) => ({ ...prev, dueDate: event.target.value }))}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          />
+          <p className="text-xs text-gray-500">期限を過ぎたアンケートは回答一覧から自動的に除外されます。</p>
+        </div>
         <button
           type="submit"
           disabled={isCreatingSurvey}
@@ -213,6 +225,11 @@ const SurveyManagementPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm p-4">
             <h3 className="text-sm font-medium text-gray-900">選択中のアンケート</h3>
             <p className="text-md font-semibold text-gray-900 mt-1">{selectedSurvey.title}</p>
+            {selectedSurvey.dueDate && (
+              <div className="mt-2 inline-flex items-center px-2 py-1 rounded-full bg-primary-100 text-primary-700 text-xs font-medium">
+                期限: {new Date(selectedSurvey.dueDate).toLocaleDateString('ja-JP')}
+              </div>
+            )}
             {selectedSurvey.description && (
               <p className="text-sm text-gray-600 mt-2 whitespace-pre-wrap">{selectedSurvey.description}</p>
             )}

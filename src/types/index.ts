@@ -8,6 +8,7 @@ export interface Survey {
   id: string;
   title: string;
   description?: string;
+  dueDate?: string;
   createdBy?: string;
   createdAt: string;
   updatedAt: string;

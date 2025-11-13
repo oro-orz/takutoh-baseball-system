@@ -1,6 +1,6 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Calendar, UserCheck, Trophy, LogOut, ClipboardList } from 'lucide-react';
+import { Calendar, UserCheck, Trophy, LogOut } from 'lucide-react';
 import LoginPage from './components/LoginPage';
 import SchedulePage from './components/SchedulePage';
 import ParticipationPage from './components/ParticipationPage';
@@ -81,13 +81,11 @@ const AppContent: React.FC = () => {
     ? [
         { id: 'schedule', label: '予定', icon: Calendar },
         { id: 'progress', label: '進捗確認', icon: UserCheck },
-        { id: 'surveys', label: 'アンケート', icon: ClipboardList },
         { id: 'admin', label: '試合記録', icon: Trophy },
       ]
     : [
         { id: 'schedule', label: '予定', icon: Calendar },
         { id: 'participation', label: '参加入力', icon: UserCheck },
-        { id: 'surveys', label: 'アンケート', icon: ClipboardList },
         { id: 'game-records', label: '試合記録', icon: Trophy },
       ];
 
