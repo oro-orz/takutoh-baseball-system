@@ -258,14 +258,16 @@ const SurveyPage: React.FC = () => {
               <h3 className="text-base font-semibold text-gray-900">{selectedSurvey.title}</h3>
               <div className="flex items-center space-x-2 text-xs">
                 {selectedSurvey.dueDate && (
-                  <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg font-semibold ${
-                    isSurveyArchived(selectedSurvey)
-                      ? 'bg-red-600 text-white'
-                      : 'bg-yellow-400 text-yellow-900'
-                  }`}>
-                    <span>期限:</span>
-                    <span>{formatDueDate(selectedSurvey.dueDate)}</span>
-                  </span>
+                  <div
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-lg border text-sm font-medium ${
+                      isSurveyArchived(selectedSurvey)
+                        ? 'bg-red-50 border-red-200 text-red-700'
+                        : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+                    }`}
+                  >
+                    <span>期限</span>
+                    <span className="font-semibold">{formatDueDate(selectedSurvey.dueDate)}</span>
+                  </div>
                 )}
                 {isSurveyArchived(selectedSurvey) && (
                   <span className="inline-flex items-center px-2 py-1 rounded-full bg-gray-200 text-gray-600 font-medium">
@@ -273,11 +275,6 @@ const SurveyPage: React.FC = () => {
                   </span>
                 )}
               </div>
-              {selectedSurvey.dueDate && !isSurveyArchived(selectedSurvey) && (
-                <p className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
-                  期限内に送信してください。
-                </p>
-              )}
               {selectedSurvey.description && (
                 <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedSurvey.description}</p>
               )}
