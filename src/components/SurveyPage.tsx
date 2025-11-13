@@ -258,10 +258,13 @@ const SurveyPage: React.FC = () => {
               <h3 className="text-base font-semibold text-gray-900">{selectedSurvey.title}</h3>
               <div className="flex items-center space-x-2 text-xs">
                 {selectedSurvey.dueDate && (
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full font-medium ${
-                    isSurveyArchived(selectedSurvey) ? 'bg-red-100 text-red-700' : 'bg-primary-100 text-primary-700'
+                  <span className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg font-semibold ${
+                    isSurveyArchived(selectedSurvey)
+                      ? 'bg-red-600 text-white'
+                      : 'bg-yellow-400 text-yellow-900'
                   }`}>
-                    期限: {formatDueDate(selectedSurvey.dueDate)}
+                    <span>期限:</span>
+                    <span>{formatDueDate(selectedSurvey.dueDate)}</span>
                   </span>
                 )}
                 {isSurveyArchived(selectedSurvey) && (
@@ -270,6 +273,11 @@ const SurveyPage: React.FC = () => {
                   </span>
                 )}
               </div>
+              {selectedSurvey.dueDate && !isSurveyArchived(selectedSurvey) && (
+                <p className="text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2">
+                  期限内に送信してください。
+                </p>
+              )}
               {selectedSurvey.description && (
                 <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedSurvey.description}</p>
               )}
@@ -278,85 +286,87 @@ const SurveyPage: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <h4 className="text-sm font-medium text-gray-900">回答フォーム</h4>
 
-              {!hasQuestions && (
-                <p className="text-sm text-gray-500">
-                  このアンケートにはまだ設問が登録されていません。
-                </p>
-              )}
+              <div className="space-y-4 bg-gray-50 border border-gray-100 rounded-lg p-4">
+                {!hasQuestions && (
+                  <p className="text-sm text-gray-500">
+                    このアンケートにはまだ設問が登録されていません。
+                  </p>
+                )}
 
-              {questions.map((question, index) => {
-                const value = formState[question.id]
-                return (
-                  <div key={question.id} className="space-y-2">
-                    <div>
-                      <span className="text-sm font-medium text-gray-900">
-                        {index + 1}. {question.questionText}
-                      </span>
-                      <span className="ml-2 text-xs text-gray-500">
-                        {question.questionType === 'text'
-                          ? '自由記述'
-                          : question.questionType === 'single_choice'
-                          ? '単一選択'
-                          : '複数選択'}
-                      </span>
-                    </div>
-
-                    {question.questionType === 'text' && (
-                      <textarea
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        rows={3}
-                        value={(value as string) ?? ''}
-                        onChange={(event) => handleInputChange(question, event.target.value)}
-                      />
-                    )}
-
-                    {question.questionType === 'single_choice' && (
-                      <div className="space-y-2">
-                        {(question.options ?? []).map((option) => (
-                          <label key={option} className="flex items-center space-x-2 text-sm text-gray-700">
-                            <input
-                              type="radio"
-                              name={`question-${question.id}`}
-                              value={option}
-                              checked={value === option}
-                              onChange={() => handleInputChange(question, option)}
-                            />
-                            <span>{option}</span>
-                          </label>
-                        ))}
+                {questions.map((question, index) => {
+                  const value = formState[question.id]
+                  return (
+                    <div key={question.id} className="space-y-2">
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">
+                          {index + 1}. {question.questionText}
+                        </span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          {question.questionType === 'text'
+                            ? '自由記述'
+                            : question.questionType === 'single_choice'
+                            ? '単一選択'
+                            : '複数選択'}
+                        </span>
                       </div>
-                    )}
 
-                    {question.questionType === 'multiple_choice' && (
-                      <div className="space-y-2">
-                        {(question.options ?? []).map((option) => {
-                          const selectedValues = Array.isArray(value) ? value : []
-                          const isSelected = selectedValues.includes(option)
-                          return (
+                      {question.questionType === 'text' && (
+                        <textarea
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          rows={3}
+                          value={(value as string) ?? ''}
+                          onChange={(event) => handleInputChange(question, event.target.value)}
+                        />
+                      )}
+
+                      {question.questionType === 'single_choice' && (
+                        <div className="space-y-2">
+                          {(question.options ?? []).map((option) => (
                             <label key={option} className="flex items-center space-x-2 text-sm text-gray-700">
                               <input
-                                type="checkbox"
+                                type="radio"
+                                name={`question-${question.id}`}
                                 value={option}
-                                checked={isSelected}
-                                onChange={(event) => {
-                                  const nextValues = new Set(selectedValues)
-                                  if (event.target.checked) {
-                                    nextValues.add(option)
-                                  } else {
-                                    nextValues.delete(option)
-                                  }
-                                  handleInputChange(question, Array.from(nextValues))
-                                }}
+                                checked={value === option}
+                                onChange={() => handleInputChange(question, option)}
                               />
                               <span>{option}</span>
                             </label>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
+                          ))}
+                        </div>
+                      )}
+
+                      {question.questionType === 'multiple_choice' && (
+                        <div className="space-y-2">
+                          {(question.options ?? []).map((option) => {
+                            const selectedValues = Array.isArray(value) ? value : []
+                            const isSelected = selectedValues.includes(option)
+                            return (
+                              <label key={option} className="flex items-center space-x-2 text-sm text-gray-700">
+                                <input
+                                  type="checkbox"
+                                  value={option}
+                                  checked={isSelected}
+                                  onChange={(event) => {
+                                    const nextValues = new Set(selectedValues)
+                                    if (event.target.checked) {
+                                      nextValues.add(option)
+                                    } else {
+                                      nextValues.delete(option)
+                                    }
+                                    handleInputChange(question, Array.from(nextValues))
+                                  }}
+                                />
+                                <span>{option}</span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
 
               <button
                 type="submit"
