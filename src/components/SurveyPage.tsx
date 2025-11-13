@@ -19,13 +19,9 @@ const SurveyPage: React.FC = () => {
   const [formState, setFormState] = useState<FormState>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [openSections, setOpenSections] = useState({
-    details: true,
-    form: true,
-    responses: false,
-  })
   const [userNameMap, setUserNameMap] = useState<Record<string, string>>({})
   const [showArchive, setShowArchive] = useState(false)
+  const [showResponses, setShowResponses] = useState(false)
 
   const isSurveyArchived = (survey: Survey) => {
     if (!survey.dueDate) return false
@@ -121,7 +117,7 @@ const SurveyPage: React.FC = () => {
   const handleSelectSurvey = (surveyId: string) => {
     setSelectedSurveyId(surveyId)
     setFormState({})
-    setOpenSections({ details: true, form: true, responses: false })
+    setShowResponses(false)
     const targetSurvey = surveys.find((survey) => survey.id === surveyId)
     if (targetSurvey && isSurveyArchived(targetSurvey)) {
       setShowArchive(true)
@@ -178,10 +174,6 @@ const SurveyPage: React.FC = () => {
   }, [surveys])
 
   const hasQuestions = questions.length > 0
-
-  const toggleSection = (key: keyof typeof openSections) => {
-    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }))
-  }
 
   return (
     <div className="space-y-5">
@@ -261,11 +253,7 @@ const SurveyPage: React.FC = () => {
 
       {selectedSurvey && (
         <div className="space-y-3">
-          <AccordionSection
-            title="アンケート詳細"
-            isOpen={openSections.details}
-            onToggle={() => toggleSection('details')}
-          >
+          <div className="bg-white rounded-xl shadow-sm p-5 space-y-5">
             <div className="space-y-2">
               <h3 className="text-base font-semibold text-gray-900">{selectedSurvey.title}</h3>
               <div className="flex items-center space-x-2 text-xs">
@@ -286,13 +274,7 @@ const SurveyPage: React.FC = () => {
                 <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedSurvey.description}</p>
               )}
             </div>
-          </AccordionSection>
 
-          <AccordionSection
-            title="回答フォーム"
-            isOpen={openSections.form}
-            onToggle={() => toggleSection('form')}
-          >
             <form onSubmit={handleSubmit} className="space-y-4">
               <h4 className="text-sm font-medium text-gray-900">回答フォーム</h4>
 
@@ -395,12 +377,12 @@ const SurveyPage: React.FC = () => {
                 )}
               </button>
             </form>
-          </AccordionSection>
+          </div>
 
           <AccordionSection
             title="回答一覧"
-            isOpen={openSections.responses}
-            onToggle={() => toggleSection('responses')}
+            isOpen={showResponses}
+            onToggle={() => setShowResponses((prev) => !prev)}
           >
             {responses.length === 0 ? (
               <p className="text-sm text-gray-500">まだ回答はありません。</p>
